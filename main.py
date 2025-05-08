@@ -101,8 +101,13 @@ def show_quota_tracker():
 def show_closed_deals():
     st.title("💼 Closed Deals")
 
-    with open("closed_deals_template.csv", "rb") as f:
-    st.download_button("📥 Download Template", f, file_name="closed_deals_template.csv", mime="text/csv")
+ with open("closed_deals_template.csv", "rb") as f:
+    st.download_button(
+        label="📥 Download Template",
+        data=f,
+        file_name="closed_deals_template.csv",
+        mime="text/csv"
+    )
 
 
     st.markdown("### 📤 Upload a List of Closed Deals")
@@ -192,7 +197,13 @@ def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
 
     with open("crm_template.csv", "rb") as f:
-    st.download_button("📥 Download Template", f, file_name="crm_template.csv", mime="text/csv")
+    st.download_button(
+        label="📥 Download Template",
+        data=f,
+        file_name="crm_template.csv",
+        mime="text/csv"
+    )
+
 
 
     st.markdown("### 📤 Upload CSV for Pipeline")
