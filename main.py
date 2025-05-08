@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 from openai import OpenAI
 
 # Setup
@@ -52,19 +53,21 @@ if "deals" not in st.session_state:
     st.session_state.deals = []
 if "uploaded_accounts" not in st.session_state:
     st.session_state.uploaded_accounts = None
+if "quota" not in st.session_state:
+    st.session_state.quota = 750000
 
 # === QUOTA CALC ===
 def show_quota_tracker():
     st.title("📊 Quota Tracker")
-    quota = st.number_input("Enter your quota target ($)", value=750000, step=10000)
-    
+    st.session_state.quota = st.number_input("Enter your quota target ($)", value=st.session_state.quota, step=10000)
+
     df_deals = pd.DataFrame(st.session_state.deals)
     if not df_deals.empty:
         df_deals.columns = ["Account", "ACV", "Quarter"]
         total_acv = df_deals["ACV"].sum()
-        percent_to_quota = (total_acv / quota) * 100 if quota > 0 else 0
+        percent_to_quota = (total_acv / st.session_state.quota) * 100 if st.session_state.quota > 0 else 0
 
-        st.markdown(f"### 💰 Booked: ${total_acv:,.0f} / ${quota:,.0f}")
+        st.markdown(f"### 💰 Booked: ${total_acv:,.0f} / ${st.session_state.quota:,.0f}")
         st.markdown(f"### 📈 Progress: {percent_to_quota:.1f}%")
         st.progress(min(percent_to_quota / 100, 1.0), text=f"{percent_to_quota:.1f}% to goal")
     else:
@@ -187,11 +190,21 @@ def show_upload_section():
         st.success("✅ File uploaded and stored for AI analysis.")
         st.dataframe(df)
 
-# === HOME ===
+# === HOME DASHBOARD ===
 def show_home():
     st.title("🏠 Territory Suite")
     st.subheader("Your Sales Mainframe")
-    st.write("Welcome back. This will soon become your personalized sales dashboard — showing live quota performance, alerts, top deals, and pipeline signals.")
+
+    df_deals = pd.DataFrame(st.session_state.deals)
+    total_acv = df_deals["acv"].sum() if not df_deals.empty else 0
+    remaining = max(st.session_state.quota - total_acv, 0)
+
+    # Pie chart
+    fig, ax = plt.subplots()
+    ax.pie([total_acv, remaining], labels=["Booked", "Remaining"], autopct='%1.1f%%',
+           startangle=90, colors=["#10B981", "#E5E7EB"])
+    ax.axis("equal")
+    st.pyplot(fig)
 
     st.markdown("### 🔧 Coming Soon:")
     st.markdown("- 📊 Top Metrics (Quota % to Goal, Pipeline Coverage)")
