@@ -100,7 +100,7 @@ def show_quota_tracker():
 # === CLOSED DEALS ===
 def show_closed_deals():
     st.title("💼 Closed Deals")
-with open("closed_deals_template.csv", "rb") as f:
+with open("sample_closed_deals_upload_named.csv", "rb") as f:
     st.download_button(
         label="📥 Download Template",
         data=f,
@@ -200,7 +200,7 @@ def show_upload_section():
 # === CRM PIPELINE ===
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
-with open("crm_template.csv", "rb") as f:
+with open("sample_crm_upload_named.csv", "rb") as f:
     st.download_button(
         label="📥 Download Template",
         data=f,
