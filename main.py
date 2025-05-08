@@ -33,18 +33,26 @@ with st.form("deal_form"):
 
     submitted = st.form_submit_button("Add Deal")
 
-    if submitted and account_name and deal_value:
-        st.session_state.deals.append({
-            "account": account_name,
-            "acv": deal_value,
-            "quarter": quarter_closed
-        })
-        st.success(f"✅ Deal added: {account_name} — ${deal_value:,.0f} — {quarter_closed}")
+    existing_accounts = [deal["account"].lower() for deal in st.session_state.deals]
+
+    if submitted:
+        if not account_name or deal_value == 0:
+            st.warning("Please enter a valid account name and ACV greater than $0.")
+        elif account_name.lower() in existing_accounts:
+            st.warning("🚫 This account is already in your closed deal list.")
+        else:
+            st.session_state.deals.append({
+                "account": account_name,
+                "acv": deal_value,
+                "quarter": quarter_closed
+            })
+            st.success(f"✅ Deal added: {account_name} — ${deal_value:,.0f} — {quarter_closed}")
 
 # Display deal table and progress
 if st.session_state.deals:
     df_deals = pd.DataFrame(st.session_state.deals)
-    total_acv = df_deals["acv"].sum()
+    df_deals.columns = ["Account", "ACV", "Quarter"]
+    total_acv = df_deals["ACV"].sum()
     percent_to_quota = (total_acv / quota) * 100 if quota > 0 else 0
 
     st.markdown("### 📋 Closed Deals")
