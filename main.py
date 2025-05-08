@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from openai import OpenAI
 
 # Setup
@@ -157,13 +157,11 @@ Trigger Update: {trigger}
 
     if st.session_state.uploaded_accounts is not None:
         st.subheader("📊 Strategic Briefs")
-
         for company in st.session_state.uploaded_accounts["Company Name"]:
             st.markdown(f"### {company}")
             if company in dummy_triggers:
                 summary = generate_summary(company, dummy_triggers[company])
                 st.markdown(summary)
-
                 if company in dummy_articles:
                     st.markdown("#### 📰 Related Articles:")
                     for article in dummy_articles[company]:
@@ -182,7 +180,6 @@ Trigger Update: {trigger}
 def show_upload_section():
     st.title("📁 Upload Account List")
     st.write("Upload a `.csv` file with a column labeled `Company Name`.")
-
     uploaded_file = st.file_uploader("Upload CSV", type="csv")
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
@@ -199,27 +196,24 @@ def show_home():
     total_acv = df_deals["acv"].sum() if not df_deals.empty else 0
     remaining = max(st.session_state.quota - total_acv, 0)
 
- import plotly.graph_objects as go
+    # Donut chart using Plotly
+    fig = go.Figure(data=[go.Pie(
+        labels=["Booked", "Remaining"],
+        values=[total_acv, remaining],
+        hole=.6,
+        marker_colors=["#10B981", "#E5E7EB"],
+        textinfo='label+percent',
+        hoverinfo='label+value'
+    )])
+    fig.update_layout(
+        title_text="📈 Quota Progress",
+        showlegend=False,
+        height=400,
+        margin=dict(t=40, b=0, l=0, r=0),
+        font=dict(family="Inter", size=14)
+    )
 
-# Donut chart using Plotly
-fig = go.Figure(data=[go.Pie(
-    labels=["Booked", "Remaining"],
-    values=[total_acv, remaining],
-    hole=.6,
-    marker_colors=["#10B981", "#E5E7EB"],
-    textinfo='label+percent',
-    hoverinfo='label+value'
-)])
-fig.update_layout(
-    title_text="📈 Quota Progress",
-    showlegend=False,
-    height=400,
-    margin=dict(t=40, b=0, l=0, r=0),
-    font=dict(family="Inter", size=14)
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("### 🔧 Coming Soon:")
     st.markdown("- 📊 Top Metrics (Quota % to Goal, Pipeline Coverage)")
