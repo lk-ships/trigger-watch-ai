@@ -10,38 +10,33 @@ client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 st.set_page_config(page_title="Trigger Watch AI", layout="wide")
 
 # === HEADER ===
-st.markdown("""
-    <style>
-    .main-header {
-        text-align: center;
-        font-size: 40px;
-        font-weight: bold;
-        padding-top: 10px;
-        color: #222;
-    }
-    .sub-header {
-        text-align: center;
-        font-size: 18px;
-        color: #666;
-        margin-bottom: 20px;
-    }
-    .card {
-        background-color: #f9f9f9;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .section-title {
-        font-size: 24px;
-        font-weight: 600;
-        margin-top: 30px;
-        margin-bottom: 10px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("<div class='main-header'>🚀 Trigger Watch AI</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>Your Executive Command Center for Strategic Sales Prospecting</div>", unsafe_allow_html=True)
+st.title("🚀 Trigger Watch AI")
+st.markdown("##### The CEO Dashboard for Running Your Territory Like a Business")
+st.markdown("---")
 
 # === FILE UPLOAD ===
-st.markdown("<div class='section-title'>📂 Upload Your Accounts</div>", unsafe_allow_html=True)
+st.subheader("📂 Upload Your Accounts")
+st.write("Upload a `.csv` file with a column labeled `Company Name` to receive strategic summaries powered by AI.")
+
+uploaded_file = st.file_uploader("Choose CSV file", type="csv")
+
+# Dummy trigger data
+dummy_triggers = {
+    "Brightline": "Hired a new CHRO from Paylocity. Recently announced Series C funding.",
+    "EnableComp": "Merged with a healthcare billing firm. CFO joined 3 months ago from HCA.",
+    "PhyNet": "Opened a new HQ in Nashville. CEO previously used Workday at another company."
+}
+
+# Summary generator
+def generate_summary(company, trigger):
+    prompt = f"""
+    You are a top-performing Workday account executive preparing for high-impact outbound prospecting.
+
+    Summarize this company update in 3–5 sharp bullets, as if you're writing prep notes for a call with leadership.
+
+    Each bullet should focus on:
+    - Strategic change (exec hire, HQ, funding, M&A, tech shifts)
+    - Why this creates disruption or opportunity
+    - Relevance to Workday's HCM, Finance, or Planning solutions
+
+    Tone sh
