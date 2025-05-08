@@ -100,6 +100,31 @@ def show_quota_tracker():
 # === CLOSED DEALS ===
 def show_closed_deals():
     st.title("💼 Closed Deals")
+
+    st.subheader("📤 Upload Closed Deals CSV")
+    uploaded_deals_file = st.file_uploader("Upload CSV for Closed Deals", type="csv", key="closed_deals")
+    if uploaded_deals_file:
+        try:
+            df_uploaded = pd.read_csv(uploaded_deals_file)
+            required_cols = {"account", "acv", "deal_type", "quarter"}
+            if required_cols.issubset(df_uploaded.columns):
+                for _, row in df_uploaded.iterrows():
+                    if row["account"].lower() not in [d["account"].lower() for d in st.session_state.deals]:
+                        st.session_state.deals.append({
+                            "account": row["account"],
+                            "acv": row["acv"],
+                            "deal_type": row["deal_type"],
+                            "quarter": row["quarter"]
+                        })
+                st.success("✅ Uploaded closed deals added.")
+            else:
+                st.warning("⚠️ CSV must include columns: account, acv, deal_type, quarter")
+        except Exception as e:
+            st.error(f"❌ Error processing file: {e}")
+
+
+def show_closed_deals():
+    st.title("💼 Closed Deals")
     with st.form("deal_form"):
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -159,6 +184,32 @@ def show_upload_section():
         st.dataframe(df)
 
 # === CRM PIPELINE ===
+def show_crm_pipeline():
+    st.title("📂 CRM – Pipeline Manager")
+
+    st.subheader("📤 Upload Opportunities CSV")
+    uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline")
+    if uploaded_pipeline_file:
+        try:
+            df_uploaded = pd.read_csv(uploaded_pipeline_file)
+            required_cols = {"account", "acv", "stage", "confidence", "close_date", "notes"}
+            if required_cols.issubset(df_uploaded.columns):
+                for _, row in df_uploaded.iterrows():
+                    st.session_state.pipeline.append({
+                        "account": row["account"],
+                        "acv": row["acv"],
+                        "stage": row["stage"],
+                        "confidence": row["confidence"],
+                        "close_date": row["close_date"],
+                        "notes": row["notes"]
+                    })
+                st.success("✅ Uploaded opportunities added.")
+            else:
+                st.warning("⚠️ CSV must include columns: account, acv, stage, confidence, close_date, notes")
+        except Exception as e:
+            st.error(f"❌ Error processing file: {e}")
+
+
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
     with st.form("add_pipeline_opportunity"):
