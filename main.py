@@ -123,3 +123,4 @@ if uploaded_file:
             st.info("No trigger data available for this account.")
 else:
     st.info("⬆️ Upload your CSV file to begin.")
+    
