@@ -3,16 +3,6 @@ import pandas as pd
 import os
 import plotly.graph_objects as go
 from datetime import date
-import openai
-from typing import List, Dict
-import requests
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Initialize OpenAI client
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.set_page_config(page_title="Territory Suite", layout="wide")
 
