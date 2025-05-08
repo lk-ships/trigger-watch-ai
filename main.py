@@ -381,45 +381,52 @@ def extract_company_info(url):
 def scrape_recent_news(website_url):
     """Scrape recent news and updates from company website"""
     try:
+        # Fetch the homepage
         response = requests.get(website_url, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Find news-related pages
-        news_links = []
+        # Find news/press/blog section link
+        news_url = None
         for link in soup.find_all('a', href=True):
             href = link['href'].lower()
             text = link.text.lower()
-            if any(keyword in href or keyword in text for keyword in ['news', 'blog', 'press', 'media']):
+            if any(keyword in href or keyword in text for keyword in ['news', 'press', 'blog', 'media']):
                 # Handle relative URLs
                 if href.startswith('/'):
                     base_url = urlparse(website_url)
-                    full_url = f"{base_url.scheme}://{base_url.netloc}{href}"
+                    news_url = f"{base_url.scheme}://{base_url.netloc}{href}"
                 else:
-                    full_url = href
-                news_links.append(full_url)
+                    news_url = href
+                break
         
-        # Get unique news links
-        news_links = list(set(news_links))[:3]  # Limit to 3 unique news pages
+        if not news_url:
+            return "No news section found on the website."
         
-        recent_updates = []
-        for news_url in news_links:
-            try:
-                news_response = requests.get(news_url, timeout=5)
-                news_soup = BeautifulSoup(news_response.text, 'html.parser')
-                
-                # Look for article elements or headlines
-                articles = news_soup.find_all(['article', 'div'], class_=lambda x: x and any(term in str(x).lower() for term in ['article', 'post', 'news']))
-                
-                for article in articles[:2]:  # Get up to 2 articles per page
-                    headline = article.find(['h1', 'h2', 'h3'])
-                    if headline:
-                        recent_updates.append(headline.text.strip())
-            except Exception as e:
-                continue
+        # Fetch the news page
+        news_response = requests.get(news_url, timeout=10)
+        news_soup = BeautifulSoup(news_response.text, 'html.parser')
         
-        if recent_updates:
-            return "Recent Updates:\n" + "\n".join(f"- {update}" for update in recent_updates[:5])
-        return "No recent updates found."
+        # Look for recent content
+        recent_content = []
+        
+        # Try to find news articles or blog posts
+        articles = news_soup.find_all(['article', 'div'], class_=lambda x: x and any(term in str(x).lower() for term in ['article', 'post', 'news', 'press']))
+        
+        for article in articles[:3]:  # Limit to 3 most recent articles
+            # Get the headline
+            headline = article.find(['h1', 'h2', 'h3', 'h4'])
+            headline_text = headline.text.strip() if headline else "No headline"
+            
+            # Get the content
+            paragraphs = article.find_all('p')
+            if paragraphs:
+                # Take the first 2 paragraphs or less
+                content = ' '.join(p.text.strip() for p in paragraphs[:2])
+                recent_content.append(f"**{headline_text}**\n{content}")
+        
+        if recent_content:
+            return "\n\n".join(recent_content)
+        return "No recent content found in the news section."
         
     except Exception as e:
         return f"Error fetching news: {str(e)}"
