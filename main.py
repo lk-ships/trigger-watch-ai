@@ -3,6 +3,13 @@ import pandas as pd
 import os
 import plotly.graph_objects as go
 from datetime import date
+import openai
+from bs4 import BeautifulSoup
+import requests
+from urllib.parse import urlparse
+
+# Initialize OpenAI client
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.set_page_config(page_title="Territory Suite", layout="wide")
 
@@ -29,6 +36,23 @@ html, body, [class*="css"] {
 }
 header .st-emotion-cache-18ni7ap { visibility: hidden; }
 footer {visibility: hidden;}
+
+/* Call Prep Sheet Styles */
+.prep-section {
+    background-color: #f8fafc;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+}
+.prep-section h3 {
+    color: #1e293b;
+    margin-bottom: 15px;
+}
+.prep-section p {
+    color: #475569;
+    line-height: 1.6;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -37,7 +61,7 @@ st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
     "🏠 Home", "📂 CRM", "📁 Upload Accounts",
-    "🧠 AI Account Summaries", "💼 Closed Deals", "📊 Quota Tracker"
+    "🧠 AI Account Summaries", "💼 Closed Deals", "📊 Quota Tracker", "📞 Call Prep Sheet"
 ])
 
 # === SESSION STATE INIT ===
@@ -277,6 +301,92 @@ def show_crm_pipeline():
     else:
         st.info("No deals in pipeline.")
 
+# === CALL PREP SHEET ===
+def extract_company_info(url):
+    """Extract basic company information from website"""
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Get company name from title
+        company_name = soup.title.string if soup.title else urlparse(url).netloc
+        
+        # Get meta description
+        meta_desc = soup.find('meta', {'name': 'description'})
+        description = meta_desc['content'] if meta_desc else ""
+        
+        return {
+            "name": company_name,
+            "description": description,
+            "url": url
+        }
+    except Exception as e:
+        return {
+            "name": urlparse(url).netloc,
+            "description": "",
+            "url": url
+        }
+
+def generate_prep_sheet(company_info):
+    """Generate call prep sheet using OpenAI"""
+    try:
+        prompt = f"""Based on the following company information, generate a comprehensive call prep sheet with 4 sections:
+
+Company: {company_info['name']}
+Website: {company_info['url']}
+Description: {company_info['description']}
+
+Please provide:
+
+1. Company Summary (2-3 sentences)
+2. Key Industry Trends (3-4 bullet points)
+3. Workday Value Proposition (3-4 bullet points)
+4. Potential Trigger Events (3-4 bullet points)
+
+Format the response with clear section headers and bullet points."""
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Provide concise, relevant, and actionable insights."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error generating prep sheet: {str(e)}"
+
+def show_call_prep():
+    st.title("📞 Call Prep Sheet")
+    
+    # URL input
+    url = st.text_input("Enter Company Website URL", placeholder="https://www.example.com")
+    
+    if st.button("Generate Prep Sheet"):
+        if url:
+            with st.spinner("Analyzing company and generating prep sheet..."):
+                # Extract company info
+                company_info = extract_company_info(url)
+                
+                # Generate prep sheet
+                prep_content = generate_prep_sheet(company_info)
+                
+                # Display results in styled sections
+                sections = prep_content.split('\n\n')
+                
+                for section in sections:
+                    if section.strip():
+                        st.markdown(f"""
+                        <div class="prep-section">
+                            {section}
+                        </div>
+                        """, unsafe_allow_html=True)
+        else:
+            st.warning("Please enter a company website URL")
+
 # === ROUTER ===
 if section == "🏠 Home":
     show_home()
@@ -290,3 +400,5 @@ elif section == "📁 Upload Accounts":
     show_upload_section()
 elif section == "📂 CRM":
     show_crm_pipeline()
+elif section == "📞 Call Prep Sheet":
+    show_call_prep()
