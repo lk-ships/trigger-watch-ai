@@ -101,7 +101,7 @@ def show_quota_tracker():
 def show_closed_deals():
     st.title("💼 Closed Deals")
 
-    st.subheader("📤 Upload Closed Deals CSV")
+    st.markdown("### 📤 Upload a List of Closed Deals")
     uploaded_deals_file = st.file_uploader("Upload CSV for Closed Deals", type="csv", key="closed_deals")
     if uploaded_deals_file:
         try:
@@ -187,7 +187,7 @@ def show_upload_section():
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
 
-    st.subheader("📤 Upload Opportunities CSV")
+    st.markdown("### 📤 Upload a List of Opportunities")
     uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline")
     if uploaded_pipeline_file:
         try:
