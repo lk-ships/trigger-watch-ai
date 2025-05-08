@@ -3,13 +3,27 @@ import pandas as pd
 import os
 import plotly.graph_objects as go
 from datetime import date
-import openai
+from openai import OpenAI
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urlparse
 
-# Initialize OpenAI client
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Debug: Print available secrets (without showing the actual key)
+st.write("Available secrets:", list(st.secrets.keys()))
+
+# Initialize OpenAI client with Streamlit secrets
+try:
+    api_key = st.secrets["OPENAI_API_KEY"]
+    if not api_key:
+        raise ValueError("API key is empty")
+    client = OpenAI(api_key=api_key)
+    # Test the client with a simple call
+    client.models.list()
+    st.success("✅ OpenAI client initialized successfully")
+except Exception as e:
+    st.error(f"⚠️ Error initializing OpenAI client: {str(e)}")
+    st.info("Please check your secrets.toml file and make sure it contains a valid OPENAI_API_KEY")
+    st.stop()
 
 st.set_page_config(page_title="Territory Suite", layout="wide")
 
@@ -345,7 +359,8 @@ Please provide:
 
 Format the response with clear section headers and bullet points."""
 
-        response = openai.ChatCompletion.create(
+        st.write("Sending request to OpenAI...")  # Debug info
+        completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Provide concise, relevant, and actionable insights."},
@@ -354,36 +369,53 @@ Format the response with clear section headers and bullet points."""
             temperature=0.7,
             max_tokens=1000
         )
+        st.write("Received response from OpenAI")  # Debug info
         
-        return response.choices[0].message.content
+        return completion.choices[0].message.content
     except Exception as e:
+        st.error(f"Detailed error: {str(e)}")  # More detailed error message
         return f"Error generating prep sheet: {str(e)}"
 
 def show_call_prep():
     st.title("📞 Call Prep Sheet")
+    
+    # Check for OpenAI API key
+    if not os.getenv("OPENAI_API_KEY"):
+        st.error("⚠️ OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+        st.info("You can set it by running: export OPENAI_API_KEY=your_api_key_here")
+        return
     
     # URL input
     url = st.text_input("Enter Company Website URL", placeholder="https://www.example.com")
     
     if st.button("Generate Prep Sheet"):
         if url:
-            with st.spinner("Analyzing company and generating prep sheet..."):
-                # Extract company info
-                company_info = extract_company_info(url)
-                
-                # Generate prep sheet
-                prep_content = generate_prep_sheet(company_info)
-                
-                # Display results in styled sections
-                sections = prep_content.split('\n\n')
-                
-                for section in sections:
-                    if section.strip():
-                        st.markdown(f"""
-                        <div class="prep-section">
-                            {section}
-                        </div>
-                        """, unsafe_allow_html=True)
+            try:
+                with st.spinner("Analyzing company and generating prep sheet..."):
+                    # Extract company info
+                    company_info = extract_company_info(url)
+                    st.write("Company info extracted:", company_info)  # Debug info
+                    
+                    # Generate prep sheet
+                    prep_content = generate_prep_sheet(company_info)
+                    
+                    if prep_content.startswith("Error"):
+                        st.error(prep_content)
+                        return
+                    
+                    # Display results in styled sections
+                    sections = prep_content.split('\n\n')
+                    
+                    for section in sections:
+                        if section.strip():
+                            st.markdown(f"""
+                            <div class="prep-section">
+                                {section}
+                            </div>
+                            """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+                st.info("Please check your internet connection and try again.")
         else:
             st.warning("Please enter a company website URL")
 
