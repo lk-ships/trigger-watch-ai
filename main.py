@@ -171,7 +171,7 @@ def show_crm_pipeline():
                 for _, row in df_uploaded.iterrows():
                     st.session_state.pipeline.append({
                         "account": row["account"],
-                        "acv": row["acv"],
+                        "acv": float(row["acv"]),
                         "stage": row["stage"],
                         "close_date": row["close_date"],
                         "notes": row["notes"]
@@ -195,8 +195,7 @@ def show_crm_pipeline():
         with col3:
             stage = st.selectbox("Stage", ["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"])
 
-        close_date = st.date_input("Expected Close Date")
-        formatted_date = close_date.strftime("%m/%d/%Y")
+        close_date = st.date_input("Expected Close Date", value=date.today())
         notes = st.text_area("Notes / Next Steps")
         submitted = st.form_submit_button("Add Opportunity")
 
@@ -205,7 +204,7 @@ def show_crm_pipeline():
                 "account": account,
                 "acv": acv,
                 "stage": stage,
-                "close_date": formatted_date,
+                "close_date": close_date.strftime("%m/%d/%Y"),
                 "notes": notes
             })
             st.success(f"✅ Opportunity for {account} added.")
