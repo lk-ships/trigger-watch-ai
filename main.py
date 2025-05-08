@@ -9,6 +9,35 @@ client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 # Streamlit page config
 st.set_page_config(page_title="Trigger Watch AI", layout="wide")
 
+# === CUSTOM FONT & STYLE OVERRIDES ===
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .stDataFrame th {
+        text-transform: capitalize;
+        font-weight: 600;
+    }
+
+    .stTextInput label, .stNumberInput label, .stSelectbox label {
+        font-weight: 600;
+    }
+
+    .stCaption {
+        color: #64748B;
+        font-size: 14px;
+    }
+
+    .stProgress > div > div > div {
+        font-weight: 600 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # === QUOTA TRACKER WITH DEAL LOGGING ===
 st.markdown("## 📊 Quota Tracker")
 st.caption("Track closed deals and see how you're progressing toward your target")
