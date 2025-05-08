@@ -9,47 +9,59 @@ client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 # Streamlit page config
 st.set_page_config(page_title="Trigger Watch AI", layout="wide")
 
-# === Quota Tracker Section ===
+# === QUOTA TRACKER WITH DEAL LOGGING ===
 st.markdown("## 📊 Quota Tracker")
-st.caption("Track your sales progress against your target")
+st.caption("Track closed deals and see how you're progressing toward your target")
 
-col1, col2 = st.columns(2)
+# Initialize session state for deal tracking
+if "deals" not in st.session_state:
+    st.session_state.deals = []
 
-with col1:
-    quota = st.number_input("Enter your quota target ($)", value=750000, step=10000)
+# Inputs for quota + new deal
+quota = st.number_input("Enter your quota target ($)", value=750000, step=10000)
 
-with col2:
-    closed_deals_input = st.text_input(
-        "Enter closed deal values (comma-separated)",
-        value="85000,120000,75000"
-    )
+st.markdown("### ➕ Add a Closed Deal")
 
-# Parse and sum deal values
-deal_values = []
-if closed_deals_input:
-    try:
-        deal_values = [float(x.strip()) for x in closed_deals_input.split(",") if x.strip()]
-    except ValueError:
-        st.error("Please enter valid numbers separated by commas.")
+with st.form("deal_form"):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        account_name = st.text_input("Account Name")
+    with col2:
+        deal_value = st.number_input("ACV ($)", min_value=0, step=5000)
+    with col3:
+        quarter_closed = st.selectbox("Quarter Closed", ["Q1", "Q2", "Q3", "Q4"])
 
-closed_total = sum(deal_values)
-percent_to_quota = (closed_total / quota) * 100 if quota > 0 else 0
+    submitted = st.form_submit_button("Add Deal")
 
-# Display result
-st.markdown(f"### 💰 Booked: ${closed_total:,.0f} / ${quota:,.0f}")
-st.markdown(f"### 📈 Progress: {percent_to_quota:.1f}%")
+    if submitted and account_name and deal_value:
+        st.session_state.deals.append({
+            "account": account_name,
+            "acv": deal_value,
+            "quarter": quarter_closed
+        })
+        st.success(f"✅ Deal added: {account_name} — ${deal_value:,.0f} — {quarter_closed}")
 
-# Progress bar
-st.progress(min(percent_to_quota / 100, 1.0), text=f"{percent_to_quota:.1f}% to goal")
+# Display deal table and progress
+if st.session_state.deals:
+    df_deals = pd.DataFrame(st.session_state.deals)
+    total_acv = df_deals["acv"].sum()
+    percent_to_quota = (total_acv / quota) * 100 if quota > 0 else 0
+
+    st.markdown("### 📋 Closed Deals")
+    st.dataframe(df_deals, use_container_width=True)
+
+    st.markdown(f"### 💰 Booked: ${total_acv:,.0f} / ${quota:,.0f}")
+    st.markdown(f"### 📈 Progress: {percent_to_quota:.1f}%")
+    st.progress(min(percent_to_quota / 100, 1.0), text=f"{percent_to_quota:.1f}% to goal")
 
 st.divider()
 
-# === App Header ===
+# === APP HEADER ===
 st.title("🚀 Trigger Watch AI")
 st.caption("Strategic territory dashboard for Workday AEs")
 st.divider()
 
-# === Upload Section ===
+# === UPLOAD SECTION ===
 st.subheader("📂 Upload Your Account List")
 st.write("Upload a `.csv` file with a column named `Company Name`. We'll generate AI-powered summaries with recent context.")
 
@@ -75,7 +87,7 @@ dummy_articles = {
     ]
 }
 
-# === AI Summary Function ===
+# === GPT Summary Function ===
 def generate_summary(company, trigger):
     prompt = f"""
 You are a top-performing Workday AE preparing for outreach.
@@ -123,4 +135,3 @@ if uploaded_file:
             st.info("No trigger data available for this account.")
 else:
     st.info("⬆️ Upload your CSV file to begin.")
-    
