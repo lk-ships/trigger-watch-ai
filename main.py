@@ -10,9 +10,6 @@ from urllib.parse import urlparse
 
 st.set_page_config(page_title="Territory Suite", layout="wide")
 
-# Debug: Print available secrets (without showing the actual key)
-st.write("Available secrets:", list(st.secrets.keys()))
-
 # Initialize OpenAI client with Streamlit secrets
 try:
     api_key = st.secrets["OPENAI_API_KEY"]
@@ -21,7 +18,6 @@ try:
     client = OpenAI(api_key=api_key)
     # Test the client with a simple call
     client.models.list()
-    st.success("✅ OpenAI client initialized successfully")
 except Exception as e:
     st.error(f"⚠️ Error initializing OpenAI client: {str(e)}")
     st.info("Please check your secrets.toml file and make sure it contains a valid OPENAI_API_KEY")
