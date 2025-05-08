@@ -418,8 +418,10 @@ def fetch_news(company_name):
             except:
                 formatted_date = pub_date
 
-            news_items.append(f"• **{title}** ({formatted_date})\n  {description}\n  [Read more]({link})")
+            # Format each article as a markdown bullet point
+            news_items.append(f"* **{title}** ({formatted_date})\n  {description}\n  [Read more]({link})")
 
+        # Return formatted news as a markdown list
         return "\n\n".join(news_items)
 
     except Exception as e:
@@ -432,12 +434,11 @@ def generate_prep_sheet(company_info):
         company_name = company_info['name']
         recent_news = fetch_news(company_name)
         
-        prompt = f"""Based on the company website {company_info['url']} and the following recent updates:
+        prompt = f"""You are a sales intelligence analyst preparing a call prep brief. Based on the following recent company news:
 
-📰 **Recent Company Updates:**
 {recent_news}
 
-Please create a sales call prep sheet with the following sections:
+Create a comprehensive call prep summary that incorporates insights from the news above. Structure your response with these sections:
 
 **Company Overview:**
 - Brief summary of what the company does
@@ -460,13 +461,13 @@ Please create a sales call prep sheet with the following sections:
 - Recent events like funding rounds, acquisitions, new executive hires (CEO, CHRO, CFO), new office openings, major PR/news events
 - Try to identify real, recent signals the rep could act on in conversation
 
-Format the response cleanly using markdown (**bold** for headers). Be concise, professional, and structured — something a sales rep could quickly read before a call."""
+Format your response using markdown with bold headers and bullet points. Be specific and cite relevant information from the news articles provided. Focus on actionable insights that would be valuable for a sales call."""
 
         st.write("Sending request to OpenAI...")  # Debug info
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Provide concise, relevant, and actionable insights. Format your response using markdown with bold headers for each section."},
+                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Your responses should be detailed, specific, and incorporate insights from recent news articles. Use markdown formatting with bold headers and bullet points for clarity."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
