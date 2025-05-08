@@ -37,8 +37,8 @@ footer {visibility: hidden;}
 st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
-    "🏠 Home", "📊 Quota Tracker", "💼 Closed Deals",
-    "🧠 AI Account Summaries", "📁 Upload Accounts", "📂 CRM"
+    "🏠 Home", "📂 CRM", "📁 Upload Accounts",
+    "🧠 AI Account Summaries", "💼 Closed Deals", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
