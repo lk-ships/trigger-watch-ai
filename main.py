@@ -102,6 +102,23 @@ def show_closed_deals():
     
     # Add file upload section
     st.subheader("📁 Upload Closed Deals")
+    
+    # Create and offer sample template download
+    sample_closed_deals = pd.DataFrame({
+        "account": ["Example Corp", "Sample Inc"],
+        "acv": [50000, 75000],
+        "deal_type": ["HR", "FINS"],
+        "quarter": ["Q1", "Q2"]
+    })
+    csv = sample_closed_deals.to_csv(index=False)
+    st.download_button(
+        label="📥 Download Sample Template",
+        data=csv,
+        file_name="closed_deals_template.csv",
+        mime="text/csv",
+        key="closed_deals_template"
+    )
+    
     uploaded_file = st.file_uploader("Upload Closed Deals CSV", type="csv", key="closed_deals_upload")
     if uploaded_file:
         try:
@@ -185,7 +202,25 @@ def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
     
     # Add file upload section
-    st.subheader("📁 Upload Pipeline")
+    st.subheader("�� Upload Pipeline")
+    
+    # Create and offer sample template download
+    sample_pipeline = pd.DataFrame({
+        "account": ["Example Corp", "Sample Inc"],
+        "acv": [100000, 150000],
+        "stage": ["Discovery", "Proposal"],
+        "close_date": ["2024-06-30", "2024-07-15"],
+        "notes": ["Initial meeting scheduled", "Waiting for legal review"]
+    })
+    csv = sample_pipeline.to_csv(index=False)
+    st.download_button(
+        label="📥 Download Sample Template",
+        data=csv,
+        file_name="pipeline_template.csv",
+        mime="text/csv",
+        key="pipeline_template"
+    )
+    
     uploaded_file = st.file_uploader("Upload Pipeline CSV", type="csv", key="pipeline_upload")
     if uploaded_file:
         try:
