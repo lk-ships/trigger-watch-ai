@@ -186,8 +186,7 @@ def show_upload_section():
 # === CRM PIPELINE ===
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
-
-    st.markdown("### 📤 Upload CSV for Pipeline")
+st.markdown("### 📤 Upload CSV for Pipeline")
 uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline_upload")
 if uploaded_pipeline_file:
     try:
@@ -209,51 +208,6 @@ if uploaded_pipeline_file:
     except Exception as e:
         st.error(f"❌ Error processing file: {e}")
 
-
-
-
-def show_crm_pipeline():
-    st.title("📂 CRM – Pipeline Manager")
-    with st.form("add_pipeline_opportunity"):
-        st.subheader("➕ Add Opportunity")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            account = st.text_input("Account Name")
-        with col2:
-            acv = st.number_input("Deal Value (ACV $)", min_value=0, step=5000)
-        with col3:
-            stage = st.selectbox("Stage", ["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"])
-        col4, col5 = st.columns(2)
-        with col4:
-            confidence = st.slider("Confidence (%)", 0, 100, 50)
-        with col5:
-            close_date = st.date_input("Expected Close Date", value=date.today())
-        notes = st.text_area("Notes / Next Steps")
-        submitted = st.form_submit_button("Add Opportunity")
-
-        if submitted:
-            st.session_state.pipeline.append({
-                "account": account,
-                "acv": acv,
-                "stage": stage,
-                "confidence": confidence,
-                "close_date": str(close_date),
-                "notes": notes
-            })
-            st.success(f"✅ Opportunity for {account} added.")
-
-    if st.session_state.pipeline:
-        st.subheader("📋 Pipeline Table")
-        df = pd.DataFrame(st.session_state.pipeline)
-        df["Weighted ACV"] = df["acv"] * (df["confidence"] / 100)
-        st.dataframe(df[["account", "acv", "stage", "confidence", "close_date", "notes", "Weighted ACV"]], use_container_width=True)
-        st.subheader("📊 Summary")
-        st.markdown(f"**Total Pipeline ACV:** ${df['acv'].sum():,.0f}")
-        st.markdown(f"**Weighted Pipeline:** ${df['Weighted ACV'].sum():,.0f}")
-        for stage in df["stage"].unique():
-            st.markdown(f"- **{stage}**: {df[df['stage'] == stage].shape[0]} deals")
-    else:
-        st.info("No deals in pipeline.")
 
 # === ROUTER ===
 if section == "🏠 Home":
