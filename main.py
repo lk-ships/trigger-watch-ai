@@ -381,7 +381,8 @@ def fetch_news(company_name):
         # Get NewsData API key from Streamlit secrets
         newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY")
         if not newsdata_api_key:
-            return "NewsData.io API key not configured. Please add NEWSDATA_API_KEY to your secrets.toml file."
+            st.warning("⚠️ NewsData.io API key not configured. Please add NEWSDATA_API_KEY to your secrets.toml file.")
+            return None
 
         # NewsData.io API endpoint
         search_url = "https://newsdata.io/api/1/news"
@@ -400,7 +401,8 @@ def fetch_news(company_name):
         news_data = response.json()
 
         if not news_data.get('results'):
-            return "No recent articles found."
+            st.warning(f"⚠️ No recent news found for {company_name}")
+            return None
 
         # Format the news articles
         news_items = []
@@ -425,20 +427,25 @@ def fetch_news(company_name):
         return "\n\n".join(news_items)
 
     except Exception as e:
-        return f"Error fetching news: {str(e)}"
+        st.error(f"Error fetching news: {str(e)}")
+        return None
 
 def generate_prep_sheet(company_info):
     """Generate call prep sheet using OpenAI"""
     try:
-        # Get recent news using company name
+        # Get company name and recent news
         company_name = company_info['name']
         recent_news = fetch_news(company_name)
         
-        prompt = f"""You are a sales intelligence analyst preparing a call prep brief. Based on the following recent company news:
+        # Build the prompt
+        prompt = f"""You are a sales intelligence analyst preparing a call prep brief.
 
-{recent_news}
+Company Name: {company_name}
 
-Create a comprehensive call prep summary that incorporates insights from the news above. Structure your response with these sections:
+Recent Updates:
+{recent_news if recent_news else "No recent news available."}
+
+Write a comprehensive call prep summary that incorporates insights from the news above (if available). Structure your response with these sections:
 
 **Company Overview:**
 - Brief summary of what the company does
@@ -461,13 +468,18 @@ Create a comprehensive call prep summary that incorporates insights from the new
 - Recent events like funding rounds, acquisitions, new executive hires (CEO, CHRO, CFO), new office openings, major PR/news events
 - Try to identify real, recent signals the rep could act on in conversation
 
-Format your response using markdown with bold headers and bullet points. Be specific and cite relevant information from the news articles provided. Focus on actionable insights that would be valuable for a sales call."""
+Important:
+- Use the exact company name: {company_name}
+- Format your response using markdown with bold headers and bullet points
+- Be specific and cite relevant information from the news articles provided
+- Focus on actionable insights that would be valuable for a sales call
+- Do not make up or hallucinate company names or details"""
 
         st.write("Sending request to OpenAI...")  # Debug info
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Your responses should be detailed, specific, and incorporate insights from recent news articles. Use markdown formatting with bold headers and bullet points for clarity."},
+                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Your responses must be accurate and use the exact company name provided. Do not make up or hallucinate company names or details. Use markdown formatting with bold headers and bullet points for clarity."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -501,7 +513,7 @@ def show_call_prep():
                     
                     # Get recent news
                     recent_news = fetch_news(company_info['name'])
-                    if recent_news and not recent_news.startswith("Error"):
+                    if recent_news:
                         st.markdown(f"""
                         <div class="response-text">
                             <h3>📰 Recent Company Updates</h3>
