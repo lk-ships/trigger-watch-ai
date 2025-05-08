@@ -187,27 +187,28 @@ def show_upload_section():
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
 
-    st.markdown("### 📤 Upload a List of Opportunities")
-    uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline")
-    if uploaded_pipeline_file:
-        try:
-            df_uploaded = pd.read_csv(uploaded_pipeline_file)
-            required_cols = {"account", "acv", "stage", "confidence", "close_date", "notes"}
-            if required_cols.issubset(df_uploaded.columns):
-                for _, row in df_uploaded.iterrows():
-                    st.session_state.pipeline.append({
-                        "account": row["account"],
-                        "acv": row["acv"],
-                        "stage": row["stage"],
-                        "confidence": row["confidence"],
-                        "close_date": row["close_date"],
-                        "notes": row["notes"]
-                    })
-                st.success("✅ Uploaded opportunities added.")
-            else:
-                st.warning("⚠️ CSV must include columns: account, acv, stage, confidence, close_date, notes")
-        except Exception as e:
-            st.error(f"❌ Error processing file: {e}")
+    st.markdown("### 📤 Upload a List of Opportunities (.csv)")
+uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline_upload")
+if uploaded_pipeline_file:
+    try:
+        df_uploaded = pd.read_csv(uploaded_pipeline_file)
+        required_cols = {"account", "acv", "stage", "confidence", "close_date", "notes"}
+        if required_cols.issubset(df_uploaded.columns):
+            for _, row in df_uploaded.iterrows():
+                st.session_state.pipeline.append({
+                    "account": row["account"],
+                    "acv": row["acv"],
+                    "stage": row["stage"],
+                    "confidence": row["confidence"],
+                    "close_date": row["close_date"],
+                    "notes": row["notes"]
+                })
+            st.success("✅ Uploaded opportunities added.")
+        else:
+            st.warning("⚠️ CSV must include: account, acv, stage, confidence, close_date, notes")
+    except Exception as e:
+        st.error(f"❌ Error processing file: {e}")
+
 
 
 def show_crm_pipeline():
