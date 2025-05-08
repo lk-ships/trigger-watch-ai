@@ -44,4 +44,4 @@ st.markdown("<div class='main-header'>🚀 Trigger Watch AI</div>", unsafe_allow
 st.markdown("<div class='sub-header'>Your Executive Command Center for Strategic Sales Prospecting</div>", unsafe_allow_html=True)
 
 # === FILE UPLOAD ===
-st.markdown("<div class='section-title'>📂 Upload Your Acc
+st.markdown("<div class='section-title'>📂 Upload Your Accounts</div>", unsafe_allow_html=True)
