@@ -51,6 +51,43 @@ html, body, [class*="css"] {
 header .st-emotion-cache-18ni7ap { visibility: hidden; }
 footer {visibility: hidden;}
 
+/* Response Text Styles */
+.response-text {
+    background-color: #f8f9fa;
+    color: #212529;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1.6;
+}
+.response-text p {
+    margin-bottom: 1rem;
+}
+.response-text p:last-child {
+    margin-bottom: 0;
+}
+.response-text ul, .response-text ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+.response-text li {
+    margin-bottom: 0.5rem;
+}
+.response-text h1, .response-text h2, .response-text h3, .response-text h4 {
+    color: #1a1a1a;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+.response-text code {
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
 /* Call Prep Sheet Styles */
 .prep-section {
     background-color: #f8fafc;
@@ -409,7 +446,7 @@ def show_call_prep():
                     for section in sections:
                         if section.strip():
                             st.markdown(f"""
-                            <div class="prep-section">
+                            <div class="prep-section response-text">
                                 {section}
                             </div>
                             """, unsafe_allow_html=True)
