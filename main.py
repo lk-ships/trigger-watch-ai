@@ -378,29 +378,82 @@ def extract_company_info(url):
             "url": url
         }
 
+def scrape_recent_news(website_url):
+    """Scrape recent news and updates from company website"""
+    try:
+        response = requests.get(website_url, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find news-related pages
+        news_links = []
+        for link in soup.find_all('a', href=True):
+            href = link['href'].lower()
+            text = link.text.lower()
+            if any(keyword in href or keyword in text for keyword in ['news', 'blog', 'press', 'media']):
+                # Handle relative URLs
+                if href.startswith('/'):
+                    base_url = urlparse(website_url)
+                    full_url = f"{base_url.scheme}://{base_url.netloc}{href}"
+                else:
+                    full_url = href
+                news_links.append(full_url)
+        
+        # Get unique news links
+        news_links = list(set(news_links))[:3]  # Limit to 3 unique news pages
+        
+        recent_updates = []
+        for news_url in news_links:
+            try:
+                news_response = requests.get(news_url, timeout=5)
+                news_soup = BeautifulSoup(news_response.text, 'html.parser')
+                
+                # Look for article elements or headlines
+                articles = news_soup.find_all(['article', 'div'], class_=lambda x: x and any(term in str(x).lower() for term in ['article', 'post', 'news']))
+                
+                for article in articles[:2]:  # Get up to 2 articles per page
+                    headline = article.find(['h1', 'h2', 'h3'])
+                    if headline:
+                        recent_updates.append(headline.text.strip())
+            except Exception as e:
+                continue
+        
+        if recent_updates:
+            return "Recent Updates:\n" + "\n".join(f"- {update}" for update in recent_updates[:5])
+        return "No recent updates found."
+        
+    except Exception as e:
+        return f"Error fetching news: {str(e)}"
+
 def generate_prep_sheet(company_info):
     """Generate call prep sheet using OpenAI"""
     try:
-        prompt = f"""You're an elite sales analyst preparing a call prep brief for a B2B technology seller who is meeting with a target account. Based on the company website {company_info['url']}, provide the following sections in your response:
+        # Get recent news first
+        recent_news = scrape_recent_news(company_info['url'])
+        
+        prompt = f"""Based on the company website {company_info['url']} and the following recent updates:
 
-Company Overview:
+{recent_news}
+
+Please create a sales call prep sheet with the following sections:
+
+**Company Overview:**
 - Brief summary of what the company does
 - Headquarters location
 - Whether the company is private or public
 - Estimated employee size
 - Industry classification
 
-Industry Trends:
+**Industry Trends:**
 - Outline key trends, challenges, or economic forces shaping their industry
 - Focus on insights relevant to business leaders (e.g. CFOs, CHROs, CEOs)
 - Include relevant insights if they are in healthcare, staffing, tech, or retail
 
-Workday Value:
+**Workday Value:**
 - Based on the company's industry and size, explain why Workday would be a strong fit
 - Highlight specific modules or functionality that are especially relevant (e.g. HR, finance, planning)
 - Be specific to the company and industry where possible
 
-Sales Triggers:
+**Sales Triggers:**
 - Recent events like funding rounds, acquisitions, new executive hires (CEO, CHRO, CFO), new office openings, major PR/news events
 - Try to identify real, recent signals the rep could act on in conversation
 
@@ -441,7 +494,16 @@ def show_call_prep():
                 with st.spinner("Analyzing company and generating prep sheet..."):
                     # Extract company info
                     company_info = extract_company_info(url)
-                    st.write("Company info extracted:", company_info)  # Debug info
+                    
+                    # Get recent news
+                    recent_news = scrape_recent_news(url)
+                    if recent_news and not recent_news.startswith("Error"):
+                        st.markdown(f"""
+                        <div class="response-text">
+                            <h3>📰 Recent Company Updates</h3>
+                            {recent_news}
+                        </div>
+                        """, unsafe_allow_html=True)
                     
                     # Generate prep sheet
                     prep_content = generate_prep_sheet(company_info)
