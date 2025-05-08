@@ -9,7 +9,42 @@ client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 # Streamlit page config
 st.set_page_config(page_title="Trigger Watch AI", layout="wide")
 
-# === UI Header ===
+# === Quota Tracker Section ===
+st.markdown("## 📊 Quota Tracker")
+st.caption("Track your sales progress against your target")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    quota = st.number_input("Enter your quota target ($)", value=750000, step=10000)
+
+with col2:
+    closed_deals_input = st.text_input(
+        "Enter closed deal values (comma-separated)",
+        value="85000,120000,75000"
+    )
+
+# Parse and sum deal values
+deal_values = []
+if closed_deals_input:
+    try:
+        deal_values = [float(x.strip()) for x in closed_deals_input.split(",") if x.strip()]
+    except ValueError:
+        st.error("Please enter valid numbers separated by commas.")
+
+closed_total = sum(deal_values)
+percent_to_quota = (closed_total / quota) * 100 if quota > 0 else 0
+
+# Display result
+st.markdown(f"### 💰 Booked: ${closed_total:,.0f} / ${quota:,.0f}")
+st.markdown(f"### 📈 Progress: {percent_to_quota:.1f}%")
+
+# Progress bar
+st.progress(min(percent_to_quota / 100, 1.0), text=f"{percent_to_quota:.1f}% to goal")
+
+st.divider()
+
+# === App Header ===
 st.title("🚀 Trigger Watch AI")
 st.caption("Strategic territory dashboard for Workday AEs")
 st.divider()
@@ -36,7 +71,7 @@ dummy_articles = {
         {"title": "EnableComp Merges with Billing Partner", "url": "https://example.com/enablecomp-merge", "date": "April 2024"},
     ],
     "PhyNet": [
-        {"title": "PhyNet Dermatology Opens New HQ in Nashville", "url": "https://example.com/phynet-hq", "date": "Jan 2024"},
+        {"title": "PhyNet Opens HQ in Nashville", "url": "https://example.com/phynet-hq", "date": "Jan 2024"},
     ]
 }
 
@@ -65,7 +100,7 @@ Trigger Update: {trigger}
     )
     return response.choices[0].message.content.strip()
 
-# === Display Results ===
+# === Display AI Briefs ===
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.success("✅ Accounts uploaded successfully!")
@@ -78,7 +113,7 @@ if uploaded_file:
             summary = generate_summary(company, dummy_triggers[company])
             st.markdown(summary)
 
-            # Show related articles
+            # Related articles
             if company in dummy_articles:
                 st.markdown("#### 📰 Related Articles:")
                 for article in dummy_articles[company]:
