@@ -100,15 +100,8 @@ def show_quota_tracker():
 # === CLOSED DEALS ===
 def show_closed_deals():
     st.title("💼 Closed Deals")
-with open("sample_closed_deals_upload_named.csv", "rb") as f:
-    st.download_button(
-        label="📥 Download Template",
-        data=f,
-        file_name="sample_closed_deals_upload_named.csv",
-        mime="text/csv"
-    )
 
-    st.subheader("📤 Upload Closed Deals CSV")
+    st.markdown("### 📤 Upload a List of Closed Deals")
     uploaded_deals_file = st.file_uploader("Upload CSV for Closed Deals", type="csv", key="closed_deals")
     if uploaded_deals_file:
         try:
@@ -132,13 +125,6 @@ with open("sample_closed_deals_upload_named.csv", "rb") as f:
 
 def show_closed_deals():
     st.title("💼 Closed Deals")
-with open("closed_deals_template.csv", "rb") as f:
-    st.download_button(
-        label="📥 Download Template",
-        data=f,
-        file_name="sample_closed_deals_upload_named.csv",
-        mime="text/csv"
-    )
     with st.form("deal_form"):
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -200,15 +186,8 @@ def show_upload_section():
 # === CRM PIPELINE ===
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
-with open("sample_crm_upload_named.csv", "rb") as f:
-    st.download_button(
-        label="📥 Download Template",
-        data=f,
-        file_name="sample_crm_upload_named.csv",
-        mime="text/csv"
-    )
 
-    st.subheader("📤 Upload Opportunities CSV")
+    st.markdown("### 📤 Upload a List of Opportunities")
     uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline")
     if uploaded_pipeline_file:
         try:
@@ -233,13 +212,6 @@ with open("sample_crm_upload_named.csv", "rb") as f:
 
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
-with open("crm_template.csv", "rb") as f:
-    st.download_button(
-        label="📥 Download Template",
-        data=f,
-        file_name="sample_crm_upload_named.csv",
-        mime="text/csv"
-    )
     with st.form("add_pipeline_opportunity"):
         st.subheader("➕ Add Opportunity")
         col1, col2, col3 = st.columns(3)
