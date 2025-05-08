@@ -199,12 +199,27 @@ def show_home():
     total_acv = df_deals["acv"].sum() if not df_deals.empty else 0
     remaining = max(st.session_state.quota - total_acv, 0)
 
-    # Pie chart
-    fig, ax = plt.subplots()
-    ax.pie([total_acv, remaining], labels=["Booked", "Remaining"], autopct='%1.1f%%',
-           startangle=90, colors=["#10B981", "#E5E7EB"])
-    ax.axis("equal")
-    st.pyplot(fig)
+ import plotly.graph_objects as go
+
+# Donut chart using Plotly
+fig = go.Figure(data=[go.Pie(
+    labels=["Booked", "Remaining"],
+    values=[total_acv, remaining],
+    hole=.6,
+    marker_colors=["#10B981", "#E5E7EB"],
+    textinfo='label+percent',
+    hoverinfo='label+value'
+)])
+fig.update_layout(
+    title_text="📈 Quota Progress",
+    showlegend=False,
+    height=400,
+    margin=dict(t=40, b=0, l=0, r=0),
+    font=dict(family="Inter", size=14)
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
 
     st.markdown("### 🔧 Coming Soon:")
     st.markdown("- 📊 Top Metrics (Quota % to Goal, Pipeline Coverage)")
