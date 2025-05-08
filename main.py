@@ -7,6 +7,7 @@ from openai import OpenAI
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urlparse
+import json
 
 st.set_page_config(page_title="Territory Suite", layout="wide")
 
@@ -374,67 +375,66 @@ def extract_company_info(url):
             "url": url
         }
 
-def scrape_recent_news(website_url):
-    """Scrape recent news and updates from company website"""
+def fetch_news(company_name):
+    """Fetch recent news about a company using NewsData.io API"""
     try:
-        # Fetch the homepage
-        response = requests.get(website_url, timeout=10)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Get NewsData API key from Streamlit secrets
+        newsdata_api_key = st.secrets.get("NEWSDATA_API_KEY")
+        if not newsdata_api_key:
+            return "NewsData.io API key not configured. Please add NEWSDATA_API_KEY to your secrets.toml file."
+
+        # NewsData.io API endpoint
+        search_url = "https://newsdata.io/api/1/news"
         
-        # Find news/press/blog section link
-        news_url = None
-        for link in soup.find_all('a', href=True):
-            href = link['href'].lower()
-            text = link.text.lower()
-            if any(keyword in href or keyword in text for keyword in ['news', 'press', 'blog', 'media']):
-                # Handle relative URLs
-                if href.startswith('/'):
-                    base_url = urlparse(website_url)
-                    news_url = f"{base_url.scheme}://{base_url.netloc}{href}"
-                else:
-                    news_url = href
-                break
-        
-        if not news_url:
-            return "No news section found on the website."
-        
-        # Fetch the news page
-        news_response = requests.get(news_url, timeout=10)
-        news_soup = BeautifulSoup(news_response.text, 'html.parser')
-        
-        # Look for recent content
-        recent_content = []
-        
-        # Try to find news articles or blog posts
-        articles = news_soup.find_all(['article', 'div'], class_=lambda x: x and any(term in str(x).lower() for term in ['article', 'post', 'news', 'press']))
-        
-        for article in articles[:3]:  # Limit to 3 most recent articles
-            # Get the headline
-            headline = article.find(['h1', 'h2', 'h3', 'h4'])
-            headline_text = headline.text.strip() if headline else "No headline"
+        # Prepare the request
+        params = {
+            'apikey': newsdata_api_key,
+            'q': company_name,
+            'language': 'en',
+            'size': 5  # Get 5 most recent articles
+        }
+
+        # Make the API call
+        response = requests.get(search_url, params=params)
+        response.raise_for_status()
+        news_data = response.json()
+
+        if not news_data.get('results'):
+            return "No recent articles found."
+
+        # Format the news articles
+        news_items = []
+        for article in news_data['results']:
+            title = article.get('title', 'No title')
+            description = article.get('description', 'No description')
+            pub_date = article.get('pubDate', 'No date')
+            link = article.get('link', '#')
             
-            # Get the content
-            paragraphs = article.find_all('p')
-            if paragraphs:
-                # Take the first 2 paragraphs or less
-                content = ' '.join(p.text.strip() for p in paragraphs[:2])
-                recent_content.append(f"**{headline_text}**\n{content}")
-        
-        if recent_content:
-            return "\n\n".join(recent_content)
-        return "No recent content found in the news section."
-        
+            # Format the date
+            try:
+                from datetime import datetime
+                date_obj = datetime.strptime(pub_date, "%Y-%m-%d %H:%M:%S")
+                formatted_date = date_obj.strftime("%B %d, %Y")
+            except:
+                formatted_date = pub_date
+
+            news_items.append(f"• **{title}** ({formatted_date})\n  {description}\n  [Read more]({link})")
+
+        return "\n\n".join(news_items)
+
     except Exception as e:
         return f"Error fetching news: {str(e)}"
 
 def generate_prep_sheet(company_info):
     """Generate call prep sheet using OpenAI"""
     try:
-        # Get recent news first
-        recent_news = scrape_recent_news(company_info['url'])
+        # Get recent news using company name
+        company_name = company_info['name']
+        recent_news = fetch_news(company_name)
         
         prompt = f"""Based on the company website {company_info['url']} and the following recent updates:
 
+📰 **Recent Company Updates:**
 {recent_news}
 
 Please create a sales call prep sheet with the following sections:
@@ -499,7 +499,7 @@ def show_call_prep():
                     company_info = extract_company_info(url)
                     
                     # Get recent news
-                    recent_news = scrape_recent_news(url)
+                    recent_news = fetch_news(company_info['name'])
                     if recent_news and not recent_news.startswith("Error"):
                         st.markdown(f"""
                         <div class="response-text">
