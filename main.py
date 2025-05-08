@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urlparse
 
+st.set_page_config(page_title="Territory Suite", layout="wide")
+
 # Debug: Print available secrets (without showing the actual key)
 st.write("Available secrets:", list(st.secrets.keys()))
 
@@ -24,8 +26,6 @@ except Exception as e:
     st.error(f"⚠️ Error initializing OpenAI client: {str(e)}")
     st.info("Please check your secrets.toml file and make sure it contains a valid OPENAI_API_KEY")
     st.stop()
-
-st.set_page_config(page_title="Territory Suite", layout="wide")
 
 # === STYLES ===
 st.markdown("""
