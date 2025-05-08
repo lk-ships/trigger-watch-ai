@@ -187,7 +187,7 @@ def show_upload_section():
 def show_crm_pipeline():
     st.title("📂 CRM – Pipeline Manager")
 
-    st.markdown("### 📤 Upload a List of Opportunities (.csv)")
+    st.markdown("### 📤 Upload CSV for Pipeline")
 uploaded_pipeline_file = st.file_uploader("Upload CSV for Pipeline", type="csv", key="pipeline_upload")
 if uploaded_pipeline_file:
     try:
@@ -208,6 +208,7 @@ if uploaded_pipeline_file:
             st.warning("⚠️ CSV must include: account, acv, stage, confidence, close_date, notes")
     except Exception as e:
         st.error(f"❌ Error processing file: {e}")
+
 
 
 
