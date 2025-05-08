@@ -6,28 +6,66 @@ from openai import OpenAI
 # Set OpenAI client
 client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
-# Page config
+# Configure page
 st.set_page_config(page_title="Trigger Watch AI", layout="wide")
 
-# === HEADER ===
-st.title("🚀 Trigger Watch AI")
-st.markdown("##### The CEO Dashboard for Running Your Territory Like a Business")
+# === Inject Custom CSS for Layout and Theme ===
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+html, body, [class*="css"]  {
+    font-family: 'Inter', sans-serif;
+    background-color: #F8FAFC;
+    color: #1E293B;
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+.section-header {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 30px 0 10px 0;
+}
+
+.card {
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.footer {
+    text-align: center;
+    font-size: 13px;
+    color: #94A3B8;
+    margin-top: 40px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# === Header ===
+st.markdown("<h1 style='text-align: center;'>🚀 Trigger Watch AI</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #64748B;'>Your Strategic Command Center for Territory Management</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# === FILE UPLOAD ===
-st.subheader("📂 Upload Your Accounts")
-st.write("Upload a `.csv` file with a column labeled `Company Name` to receive strategic summaries powered by AI.")
+# === Upload Section ===
+st.markdown("<div class='section-header'>📂 Upload Account CSV</div>", unsafe_allow_html=True)
+st.write("Upload a `.csv` file with a column named `Company Name`. AI will summarize any known company changes relevant to prospecting.")
 
-uploaded_file = st.file_uploader("Choose CSV file", type="csv")
+uploaded_file = st.file_uploader("Upload CSV", type="csv")
 
-# === Dummy Trigger Data ===
+# === Dummy Data ===
 dummy_triggers = {
     "Brightline": "Hired a new CHRO from Paylocity. Recently announced Series C funding.",
     "EnableComp": "Merged with a healthcare billing firm. CFO joined 3 months ago from HCA.",
     "PhyNet": "Opened a new HQ in Nashville. CEO previously used Workday at another company."
 }
 
-# === Generate GPT Summary ===
+# === GPT Summary Logic ===
 def generate_summary(company, trigger):
     prompt = f"""
 You are a top-performing Workday account executive preparing for high-impact outbound prospecting.
@@ -53,20 +91,20 @@ Output (3–5 short bullets):
     )
     return response.choices[0].message.content.strip()
 
-# === DISPLAY RESULTS ===
+# === Results Section ===
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.success("✅ File uploaded successfully.")
-    st.subheader("📊 AI Strategic Briefs")
-    st.caption("Summaries tailored for Workday AEs based on recent company activity.")
+    st.markdown("<div class='section-header'>📊 AI Strategic Briefs</div>", unsafe_allow_html=True)
 
     for company in df['Company Name']:
-        st.markdown(f"### {company}")
         if company in dummy_triggers:
             summary = generate_summary(company, dummy_triggers[company])
-            st.markdown(summary)
-            st.markdown("---")
+            st.markdown(f"<div class='card'><h4>{company}</h4><p>{summary}</p></div>", unsafe_allow_html=True)
         else:
-            st.info("No activity found for this account.")
+            st.markdown(f"<div class='card'><h4>{company}</h4><p><i>No activity found for this company.</i></p></div>", unsafe_allow_html=True)
 else:
-    st.info("⬆️ Upload a CSV to begin.")
+    st.info("⬆️ Upload your account list to begin.")
+
+# === Footer ===
+st.markdown("<div class='footer'>Trigger Watch AI | Built for Workday AEs | Powered by OpenAI</div>", unsafe_allow_html=True)
