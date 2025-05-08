@@ -189,105 +189,11 @@ def show_closed_deals():
                 st.experimental_rerun()
 
 # === AI ACCOUNT SUMMARIES (DUMMY) ===
-def get_company_info(company_name: str) -> Dict:
-    """Get company information from external APIs"""
-    # You can integrate with various APIs here like:
-    # - Clearbit
-    # - Crunchbase
-    # - LinkedIn
-    # - Company House
-    # For now, we'll return a placeholder
-    return {
-        "industry": "Technology",
-        "employees": "1000-5000",
-        "founded": "2010",
-        "headquarters": "San Francisco, CA",
-        "website": "www.example.com"
-    }
-
-def generate_account_summary(company_name: str, company_info: Dict, deals: List[Dict]) -> str:
-    """Generate AI summary for an account"""
-    try:
-        # Prepare context about the company
-        company_context = f"""
-        Company Name: {company_name}
-        Industry: {company_info['industry']}
-        Size: {company_info['employees']} employees
-        Founded: {company_info['founded']}
-        Location: {company_info['headquarters']}
-        Website: {company_info['website']}
-        """
-
-        # Prepare deal history
-        deal_history = ""
-        if deals:
-            deal_history = "\nDeal History:\n"
-            for deal in deals:
-                deal_history += f"- {deal['deal_type']} deal worth ${deal['acv']:,.0f} in {deal['quarter']}\n"
-
-        # Generate summary using OpenAI
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a sales intelligence assistant. Generate concise, insightful summaries of companies based on their information and deal history."},
-                {"role": "user", "content": f"Generate a concise summary of this company and their relationship with us:\n\n{company_context}\n{deal_history}"}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-        
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        return f"Error generating summary: {str(e)}"
-
 def show_ai_summaries():
     st.title("🧠 AI Account Summaries")
-    
     if st.session_state.uploaded_accounts is not None:
-        # Add refresh button
-        if st.button("🔄 Refresh Summaries"):
-            st.session_state.summaries = {}
-            st.experimental_rerun()
-            
-        # Process each account
-        for _, row in st.session_state.uploaded_accounts.iterrows():
-            company_name = row['account'] if 'account' in row else row.iloc[0]
-            
-            # Create expandable section for each company
-            with st.expander(f"📊 {company_name}", expanded=True):
-                col1, col2 = st.columns([2, 1])
-                
-                with col1:
-                    # Get company information
-                    company_info = get_company_info(company_name)
-                    
-                    # Get relevant deals from session state
-                    company_deals = [deal for deal in st.session_state.deals 
-                                   if deal['account'].lower() == company_name.lower()]
-                    
-                    # Generate or retrieve summary
-                    if 'summaries' not in st.session_state:
-                        st.session_state.summaries = {}
-                    
-                    if company_name not in st.session_state.summaries:
-                        with st.spinner(f"Generating summary for {company_name}..."):
-                            summary = generate_account_summary(company_name, company_info, company_deals)
-                            st.session_state.summaries[company_name] = summary
-                    
-                    # Display summary
-                    st.markdown(st.session_state.summaries[company_name])
-                
-                with col2:
-                    # Display company information
-                    st.markdown("### Company Information")
-                    for key, value in company_info.items():
-                        st.markdown(f"**{key.title()}:** {value}")
-                    
-                    # Display deal history
-                    if company_deals:
-                        st.markdown("### Deal History")
-                        for deal in company_deals:
-                            st.markdown(f"- {deal['deal_type']} (${deal['acv']:,.0f}) - {deal['quarter']}")
+        st.markdown("Summaries coming soon...")
+        st.dataframe(st.session_state.uploaded_accounts)
     else:
         st.info("⬆️ Upload an account list first from the sidebar.")
 
