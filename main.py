@@ -381,26 +381,36 @@ def extract_company_info(url):
 def generate_prep_sheet(company_info):
     """Generate call prep sheet using OpenAI"""
     try:
-        prompt = f"""Based on the following company information, generate a comprehensive call prep sheet with 4 sections:
+        prompt = f"""You're an elite sales analyst preparing a call prep brief for a B2B technology seller who is meeting with a target account. Based on the company website {company_info['url']}, provide the following sections in your response:
 
-Company: {company_info['name']}
-Website: {company_info['url']}
-Description: {company_info['description']}
+Company Overview:
+- Brief summary of what the company does
+- Headquarters location
+- Whether the company is private or public
+- Estimated employee size
+- Industry classification
 
-Please provide:
+Industry Trends:
+- Outline key trends, challenges, or economic forces shaping their industry
+- Focus on insights relevant to business leaders (e.g. CFOs, CHROs, CEOs)
+- Include relevant insights if they are in healthcare, staffing, tech, or retail
 
-1. Company Summary (2-3 sentences)
-2. Key Industry Trends (3-4 bullet points)
-3. Workday Value Proposition (3-4 bullet points)
-4. Potential Trigger Events (3-4 bullet points)
+Workday Value:
+- Based on the company's industry and size, explain why Workday would be a strong fit
+- Highlight specific modules or functionality that are especially relevant (e.g. HR, finance, planning)
+- Be specific to the company and industry where possible
 
-Format the response with clear section headers and bullet points."""
+Sales Triggers:
+- Recent events like funding rounds, acquisitions, new executive hires (CEO, CHRO, CFO), new office openings, major PR/news events
+- Try to identify real, recent signals the rep could act on in conversation
+
+Format the response cleanly using markdown (**bold** for headers). Be concise, professional, and structured — something a sales rep could quickly read before a call."""
 
         st.write("Sending request to OpenAI...")  # Debug info
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Provide concise, relevant, and actionable insights."},
+                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Provide concise, relevant, and actionable insights. Format your response using markdown with bold headers for each section."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -441,15 +451,11 @@ def show_call_prep():
                         return
                     
                     # Display results in styled sections
-                    sections = prep_content.split('\n\n')
-                    
-                    for section in sections:
-                        if section.strip():
-                            st.markdown(f"""
-                            <div class="prep-section response-text">
-                                {section}
-                            </div>
-                            """, unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div class="response-text">
+                        {prep_content}
+                    </div>
+                    """, unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
                 st.info("Please check your internet connection and try again.")
