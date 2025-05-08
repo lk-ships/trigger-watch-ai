@@ -5,9 +5,9 @@ from openai import OpenAI
 
 # Setup
 client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
-st.set_page_config(page_title="Trigger Watch AI", layout="wide")
+st.set_page_config(page_title="Territory Suite", layout="wide")
 
-# === FONT STYLING ===
+# === CUSTOM FONT & BRAND STYLE ===
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
@@ -33,13 +33,17 @@ st.markdown("""
     .stProgress > div > div > div {
         font-weight: 600 !important;
     }
+
+    header .st-emotion-cache-18ni7ap { visibility: hidden; }
+    footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
 # === SIDEBAR MENU ===
-st.sidebar.title("🔎 Trigger Watch AI")
+st.sidebar.title("📈 Territory Suite")
+st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio(
-    "Go to section",
+    "Navigate",
     ["🏠 Home", "📊 Quota Tracker", "💼 Closed Deals", "🧠 AI Account Summaries", "📁 Upload Accounts"]
 )
 
@@ -185,9 +189,16 @@ def show_upload_section():
 
 # === HOME ===
 def show_home():
-    st.title("🏠 Trigger Watch AI")
-    st.subheader("Your Sales Command Center")
-    st.info("This will soon become a dashboard of personalized insights, pipeline milestones, deal alerts, and growth opportunities.")
+    st.title("🏠 Territory Suite")
+    st.subheader("Your Sales Mainframe")
+    st.write("Welcome back. This will soon become your personalized sales dashboard — showing live quota performance, alerts, top deals, and pipeline signals.")
+
+    st.markdown("### 🔧 Coming Soon:")
+    st.markdown("- 📊 Top Metrics (Quota % to Goal, Pipeline Coverage)")
+    st.markdown("- 🧠 AI-Identified Opportunities")
+    st.markdown("- 📅 Deal Calendar & Close Dates")
+    st.markdown("- 🔔 Trigger Alerts & Exec Moves")
+    st.markdown("- 📥 Recommended Next Actions")
 
 # === SECTION ROUTER ===
 if section == "🏠 Home":
