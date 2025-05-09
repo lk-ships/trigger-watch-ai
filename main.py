@@ -644,13 +644,77 @@ def show_crm_pipeline():
             st.success(f"✅ Opportunity for {account} added.")
 
     if st.session_state.pipeline:
-        st.subheader("📋 Pipeline Table")
+        st.subheader("📋 Active Pipeline")
+        
+        # Create a copy of the pipeline for editing
+        pipeline_data = st.session_state.pipeline.copy()
+        
+        # Process each deal for potential updates
+        for i, deal in enumerate(pipeline_data):
+            col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 2, 1])
+            
+            # Account name (read-only)
+            col1.markdown(f"**{deal['account']}**")
+            
+            # ACV (editable)
+            new_acv = col2.number_input(
+                "ACV",
+                value=float(deal['acv']),
+                step=5000,
+                key=f"acv_{i}"
+            )
+            if new_acv != deal['acv']:
+                st.session_state.pipeline[i]['acv'] = new_acv
+                st.experimental_rerun()
+            
+            # Stage (editable)
+            new_stage = col3.selectbox(
+                "Stage",
+                ["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"],
+                index=["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"].index(deal['stage']),
+                key=f"stage_{i}"
+            )
+            if new_stage != deal['stage']:
+                st.session_state.pipeline[i]['stage'] = new_stage
+                # If moved to Closed Won, add to deals
+                if new_stage == "Closed Won":
+                    st.session_state.deals.append({
+                        "account": deal['account'],
+                        "acv": deal['acv'],
+                        "deal_type": "HR",  # Default to HR, can be updated later
+                        "quarter": f"Q{(date.today().month-1)//3 + 1}"  # Current quarter
+                    })
+                    st.session_state.pipeline.pop(i)
+                st.experimental_rerun()
+            
+            # Notes (editable)
+            new_notes = col4.text_area(
+                "Notes",
+                value=deal['notes'],
+                key=f"notes_{i}"
+            )
+            if new_notes != deal['notes']:
+                st.session_state.pipeline[i]['notes'] = new_notes
+                st.experimental_rerun()
+            
+            # Delete button
+            if col5.button("❌", key=f"delete_{i}"):
+                st.session_state.pipeline.pop(i)
+                st.experimental_rerun()
+            
+            st.markdown("---")
+        
+        # Display summary
+        st.subheader("📊 Pipeline Summary")
         df = pd.DataFrame(st.session_state.pipeline)
-        st.dataframe(df[["account", "acv", "stage", "close_date", "notes"]], use_container_width=True)
-        st.subheader("📊 Summary")
-        st.markdown(f"**Total Pipeline ACV:** ${df['acv'].sum():,.0f}")
-        for stage in df["stage"].unique():
-            st.markdown(f"- **{stage}**: {df[df['stage'] == stage].shape[0]} deals")
+        total_acv = df['acv'].sum()
+        st.markdown(f"**Total Pipeline ACV:** ${total_acv:,.0f}")
+        
+        # Stage breakdown
+        for stage in ["Prospecting", "Discovery", "Demo", "Proposal", "Commit"]:
+            stage_deals = df[df['stage'] == stage]
+            if not stage_deals.empty:
+                st.markdown(f"- **{stage}**: {len(stage_deals)} deals (${stage_deals['acv'].sum():,.0f})")
     else:
         st.info("No deals in pipeline.")
 
