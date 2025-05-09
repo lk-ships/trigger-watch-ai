@@ -119,6 +119,8 @@ if "quota" not in st.session_state:
     st.session_state.quota = 850000
 if "pipeline" not in st.session_state:
     st.session_state.pipeline = []
+if "top_targets" not in st.session_state:
+    st.session_state.top_targets = pd.DataFrame(columns=['Company Name', 'Last Updated'])
 if "uploaded_accounts" not in st.session_state:
     st.session_state.uploaded_accounts = None
 
@@ -341,6 +343,134 @@ def show_ai_summaries():
     if st.session_state.uploaded_accounts is not None:
         st.markdown("### 📊 Uploaded Account List")
         st.dataframe(st.session_state.uploaded_accounts)
+
+# === TOP TARGETS ===
+def fetch_company_intelligence(company_name):
+    """Fetch comprehensive company intelligence using OpenAI"""
+    try:
+        # Get recent news
+        news = fetch_news(company_name)
+        
+        # Build the prompt for OpenAI
+        prompt = f"""Analyze the following information about {company_name} and provide a concise executive summary:
+
+Recent News:
+{news if news else 'No recent news available.'}
+
+Please structure your response with these sections:
+
+**Recent Developments:**
+- Key news headlines and their business implications
+- Executive changes or notable hires
+- Strategic initiatives or partnerships
+
+**Business Context:**
+- Current market position
+- Key growth areas
+- Notable challenges or opportunities
+
+**Technology Signals:**
+- HRIS or ERP system mentions
+- Digital transformation initiatives
+- Technology hiring patterns
+- Workday-relevant opportunities
+
+Format the response in clear, concise bullet points. Focus on actionable insights that would be valuable for a technology sales conversation."""
+
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a business intelligence analyst providing concise, executive-level company summaries. Focus on strategic insights and actionable intelligence."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"Error generating intelligence: {str(e)}"
+
+def show_top_targets():
+    st.title("🎯 Top Targets")
+    
+    # Add custom CSS for the intelligence cards
+    st.markdown("""
+    <style>
+    .intelligence-card {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .company-header {
+        color: #1e293b;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .intelligence-content {
+        color: #475569;
+        line-height: 1.6;
+    }
+    .last-updated {
+        color: #64748b;
+        font-size: 0.9em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # File upload section
+    uploaded_file = st.file_uploader("Upload Top Targets CSV", type="csv")
+    if uploaded_file:
+        try:
+            df = pd.read_csv(uploaded_file)
+            if 'Company Name' not in df.columns:
+                st.error("❌ CSV must contain a 'Company Name' column")
+                return
+                
+            # Add timestamp for last update
+            df['Last Updated'] = pd.Timestamp.now()
+            
+            # Update session state
+            st.session_state.top_targets = df
+            st.success("✅ Top targets uploaded successfully!")
+        except Exception as e:
+            st.error(f"❌ Error uploading file: {str(e)}")
+    
+    # Display intelligence cards for each company
+    if not st.session_state.top_targets.empty:
+        st.markdown("### 📊 Target Intelligence")
+        
+        for _, row in st.session_state.top_targets.iterrows():
+            company_name = row['Company Name']
+            last_updated = row['Last Updated']
+            
+            with st.container():
+                st.markdown(f"""
+                <div class="intelligence-card">
+                    <div class="company-header">
+                        <span>{company_name}</span>
+                        <span class="last-updated">Last updated: {last_updated.strftime('%Y-%m-%d %H:%M')}</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Generate and display intelligence
+                with st.spinner(f"Fetching intelligence for {company_name}..."):
+                    intelligence = fetch_company_intelligence(company_name)
+                    st.markdown(f"""
+                    <div class="intelligence-content">
+                        {intelligence}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("---")
+    else:
+        st.info("👆 Upload a CSV file with your top target accounts to get started.")
 
 # === UPLOAD ACCOUNTS ===
 def show_upload_section():
@@ -749,6 +879,6 @@ elif section == "💼 Closed Deals":
 elif section == "🧠 Account Search":
     show_ai_summaries()
 elif section == "📁 Top Targets":
-    show_upload_section()
+    show_top_targets()
 elif section == "📂 CRM":
     show_crm_pipeline()
