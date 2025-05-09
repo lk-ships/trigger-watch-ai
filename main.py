@@ -108,8 +108,8 @@ footer {visibility: hidden;}
 st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
-    "🏠 Home", "📂 CRM", "📁 Upload Accounts",
-    "🧠 Account Review", "💼 Closed Deals", "📊 Quota Tracker"
+    "🏠 Home", "📂 CRM", "📁 Top Targets",
+    "🧠 Account Search", "💼 Closed Deals", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
@@ -297,7 +297,7 @@ Format your response using markdown with bold headers and bullet points. Be spec
         return f"Error generating summary: {str(e)}"
 
 def show_ai_summaries():
-    st.title("🧠 Account Review")
+    st.title("🧠 Account Search")
     
     # Create a form for company input
     with st.form("company_summary_form"):
@@ -344,7 +344,7 @@ def show_ai_summaries():
 
 # === UPLOAD ACCOUNTS ===
 def show_upload_section():
-    st.title("📁 Upload Account List")
+    st.title("📁 Top Targets")
     uploaded_file = st.file_uploader("Upload CSV", type="csv")
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
@@ -746,9 +746,9 @@ elif section == "📊 Quota Tracker":
     show_quota_tracker()
 elif section == "💼 Closed Deals":
     show_closed_deals()
-elif section == "🧠 Account Review":
+elif section == "🧠 Account Search":
     show_ai_summaries()
-elif section == "📁 Upload Accounts":
+elif section == "📁 Top Targets":
     show_upload_section()
 elif section == "📂 CRM":
     show_crm_pipeline()
