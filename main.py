@@ -607,12 +607,14 @@ def show_call_prep():
                     # Get recent news
                     recent_news = fetch_news(company_info['name'])
                     if recent_news:
-                        st.markdown(f"""
-                        <div class="response-text">
-                            <h3>📰 Recent Company Updates</h3>
-                            {recent_news}
-                        </div>
-                        """, unsafe_allow_html=True)
+                        with st.container():
+                            st.markdown("### 📰 Recent Company Updates")
+                            st.markdown(f"""
+                            <div class="response-text">
+                                {recent_news}
+                            </div>
+                            """, unsafe_allow_html=True)
+                            st.markdown("---")
                     
                     # Generate prep sheet
                     prep_content = generate_prep_sheet(company_info)
@@ -621,17 +623,66 @@ def show_call_prep():
                         st.error(prep_content)
                         return
                     
-                    # Display results in styled sections
-                    st.markdown(f"""
-                    <div class="response-text">
-                        {prep_content}
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # Parse and display the content in sections
+                    with st.container():
+                        # Company Summary
+                        st.markdown("### 🏢 Company Summary")
+                        st.markdown(f"""
+                        <div class="response-text">
+                            {extract_section(prep_content, "Strategic Business Context") or "_No data available._"}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.write("")
+                        
+                        # Industry Trends
+                        st.markdown("### 📈 Industry Trends")
+                        st.markdown(f"""
+                        <div class="response-text">
+                            {extract_section(prep_content, "Growth Triggers & Risk Factors") or "_No data available._"}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.write("")
+                        
+                        # Workday Fit/Value
+                        st.markdown("### 💼 Workday Fit/Value")
+                        st.markdown(f"""
+                        <div class="response-text">
+                            {extract_section(prep_content, "Technology Enablement Opportunities") or "_No data available._"}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.write("")
+                        
+                        # Trigger Events
+                        st.markdown("### 🎯 Trigger Events")
+                        st.markdown(f"""
+                        <div class="response-text">
+                            {extract_section(prep_content, "Executive Conversation Starters") or "_No data available._"}
+                        </div>
+                        """, unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
                 st.info("Please check your internet connection and try again.")
         else:
             st.warning("Please enter a company website URL")
+
+def extract_section(content, section_name):
+    """Extract a specific section from the GPT response"""
+    try:
+        # Find the section header
+        start_idx = content.find(f"**{section_name}:**")
+        if start_idx == -1:
+            return None
+            
+        # Find the next section or end of content
+        next_section = content.find("**", start_idx + len(section_name) + 4)
+        if next_section == -1:
+            # This is the last section
+            return content[start_idx:].strip()
+        else:
+            # Extract until the next section
+            return content[start_idx:next_section].strip()
+    except:
+        return None
 
 # === ROUTER ===
 if section == "🏠 Home":
