@@ -120,14 +120,22 @@ if "quota" not in st.session_state:
 if "pipeline" not in st.session_state:
     st.session_state.pipeline = []
 if "top_targets" not in st.session_state:
-    st.session_state.top_targets = pd.DataFrame(columns=['Company Name', 'Last Updated'])
+    st.session_state.top_targets = pd.DataFrame(columns=['Company Name', 'Website', 'Last Updated'])
 if "uploaded_accounts" not in st.session_state:
     st.session_state.uploaded_accounts = None
+if "last_updated" not in st.session_state:
+    st.session_state.last_updated = {}
 
 # === HOME ===
 def show_home():
     st.title("🏠 Territory Suite")
     st.subheader("Your Sales Mainframe")
+
+    # Initialize session state for deals if not present
+    if "deals" not in st.session_state:
+        st.session_state.deals = []
+    if "quota" not in st.session_state:
+        st.session_state.quota = 850000
 
     df = pd.DataFrame(st.session_state.deals)
     total_acv = df["acv"].sum() if not df.empty else 0
@@ -153,8 +161,18 @@ def show_home():
 # === QUOTA TRACKER ===
 def show_quota_tracker():
     st.title("📊 Quota Tracker")
-    st.session_state.quota = st.number_input("Enter your quota target ($)", value=st.session_state.quota, step=10000)
-
+    
+    # Initialize quota in session state if not present
+    if "quota" not in st.session_state:
+        st.session_state.quota = 850000
+    
+    # Quota input with persistence
+    new_quota = st.number_input("Enter your quota target ($)", value=st.session_state.quota, step=10000)
+    if new_quota != st.session_state.quota:
+        st.session_state.quota = new_quota
+        st.success("✅ Quota updated!")
+    
+    # Calculate and display metrics
     df = pd.DataFrame(st.session_state.deals)
     if not df.empty:
         df.columns = ["Account", "ACV", "Deal Type", "Quarter"]
@@ -199,14 +217,15 @@ def show_closed_deals():
             df = pd.read_csv(uploaded_file)
             required_columns = ["account", "acv", "deal_type", "quarter"]
             if all(col in df.columns for col in required_columns):
+                # Clear existing deals if new file is uploaded
+                st.session_state.deals = []
                 for _, row in df.iterrows():
-                    if row["account"].lower() not in [d["account"].lower() for d in st.session_state.deals]:
-                        st.session_state.deals.append({
-                            "account": row["account"],
-                            "acv": float(row["acv"]),
-                            "deal_type": row["deal_type"],
-                            "quarter": row["quarter"]
-                        })
+                    st.session_state.deals.append({
+                        "account": row["account"],
+                        "acv": float(row["acv"]),
+                        "deal_type": row["deal_type"],
+                        "quarter": row["quarter"]
+                    })
                 st.success("✅ Closed deals uploaded successfully!")
             else:
                 st.error("❌ CSV must contain columns: account, acv, deal_type, quarter")
@@ -403,6 +422,12 @@ Format the response in clear, concise bullet points. Focus on insights that woul
 def show_top_targets():
     st.title("🎯 Top Targets")
     
+    # Initialize session state for top targets if not present
+    if "top_targets" not in st.session_state:
+        st.session_state.top_targets = pd.DataFrame(columns=['Company Name', 'Website', 'Last Updated'])
+    if "last_updated" not in st.session_state:
+        st.session_state.last_updated = {}
+    
     # Add custom CSS for the intelligence cards
     st.markdown("""
     <style>
@@ -497,6 +522,9 @@ def show_top_targets():
             website = row['Website']
             last_updated = row['Last Updated']
             
+            # Store last update time in session state
+            st.session_state.last_updated[company_name] = last_updated
+            
             with st.container():
                 st.markdown(f"""
                 <div class="intelligence-card">
@@ -574,6 +602,8 @@ def show_crm_pipeline():
             df = pd.read_csv(uploaded_file)
             required_columns = ["account", "acv", "stage", "close_date", "notes"]
             if all(col in df.columns for col in required_columns):
+                # Clear existing pipeline if new file is uploaded
+                st.session_state.pipeline = []
                 for _, row in df.iterrows():
                     st.session_state.pipeline.append({
                         "account": row["account"],
