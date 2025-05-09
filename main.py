@@ -345,50 +345,51 @@ def show_ai_summaries():
         st.dataframe(st.session_state.uploaded_accounts)
 
 # === TOP TARGETS ===
-def fetch_company_intelligence(company_name):
-    """Fetch comprehensive company intelligence using OpenAI"""
+def fetch_company_intelligence(company_name, website):
+    """Generate strategic company summary using OpenAI"""
     try:
         # Get recent news
         news = fetch_news(company_name)
         
         # Build the prompt for OpenAI
-        prompt = f"""As a business intelligence analyst, provide a concise executive summary for {company_name}. Focus on actionable insights and strategic implications.
+        prompt = f"""As a senior business strategy expert, create a concise 1-page strategic summary for {company_name} ({website}). Focus on actionable insights and strategic implications.
 
 Recent News:
 {news if news else 'No recent news available.'}
 
-Structure your analysis with these sections:
+Structure your analysis with these exact sections:
 
-**Key Signals & Triggers:**
-- Recent executive changes or notable hires
-- Strategic initiatives or partnerships
+**Company Summary:**
+- Core business model and market position
+- Key products/services and value proposition
+- Target markets and customer segments
+- Recent strategic initiatives
+
+**Industry Trends:**
+- Major market dynamics and competitive landscape
+- Regulatory or technological changes
+- Economic factors affecting the sector
+- Growth opportunities and threats
+
+**Workday Fit/Value:**
+- Current technology landscape and gaps
+- Potential areas for digital transformation
+- Specific Workday value propositions
+- ROI scenarios and business impact
+
+**Trigger Events:**
+- Recent executive changes or hires
 - Funding rounds or financial developments
-- Market expansion or contraction signals
-
-**Business Context:**
-- Current market position and competitive landscape
-- Growth areas and revenue drivers
-- Notable challenges or opportunities
-- Recent performance indicators
-
-**Technology Landscape:**
-- Current HRIS/ERP systems in use
-- Digital transformation initiatives
-- Technology hiring patterns
-- Workday-relevant opportunities or pain points
-
-**Action Items:**
-- Key conversation starters
-- Strategic entry points
-- Potential ROI scenarios
-- Risk factors to address
+- M&A activity or partnerships
+- Office expansions or relocations
+- Other strategic shifts
 
 Format the response in clear, concise bullet points. Focus on insights that would be valuable for a technology sales conversation. If information is not available for a section, indicate that clearly."""
 
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a senior business intelligence analyst providing executive-level company summaries. Focus on strategic insights, actionable intelligence, and clear business implications. Avoid generic statements and prioritize specific, data-driven insights."},
+                {"role": "system", "content": "You are a senior business strategy expert providing executive-level company summaries. Focus on strategic insights, actionable intelligence, and clear business implications. Avoid generic statements and prioritize specific, data-driven insights."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -422,6 +423,11 @@ def show_top_targets():
         align-items: center;
         padding-bottom: 12px;
         border-bottom: 2px solid #f1f5f9;
+    }
+    .company-website {
+        color: #64748b;
+        font-size: 0.9em;
+        margin-top: 4px;
     }
     .intelligence-content {
         color: #475569;
@@ -468,8 +474,9 @@ def show_top_targets():
     if uploaded_file:
         try:
             df = pd.read_csv(uploaded_file)
-            if 'Company Name' not in df.columns:
-                st.error("❌ CSV must contain a 'Company Name' column")
+            required_columns = ['Company Name', 'Website']
+            if not all(col in df.columns for col in required_columns):
+                st.error("❌ CSV must contain 'Company Name' and 'Website' columns")
                 return
                 
             # Add timestamp for last update
@@ -483,24 +490,28 @@ def show_top_targets():
     
     # Display intelligence cards for each company
     if not st.session_state.top_targets.empty:
-        st.markdown("### 📊 Target Intelligence Dashboard")
+        st.markdown("### 📊 Strategic Intelligence Dashboard")
         
         for _, row in st.session_state.top_targets.iterrows():
             company_name = row['Company Name']
+            website = row['Website']
             last_updated = row['Last Updated']
             
             with st.container():
                 st.markdown(f"""
                 <div class="intelligence-card">
                     <div class="company-header">
-                        <span>{company_name}</span>
+                        <div>
+                            <span>{company_name}</span>
+                            <div class="company-website">{website}</div>
+                        </div>
                         <span class="last-updated">Last updated: {last_updated.strftime('%Y-%m-%d %H:%M')}</span>
                     </div>
                 """, unsafe_allow_html=True)
                 
                 # Generate and display intelligence
-                with st.spinner(f"Fetching intelligence for {company_name}..."):
-                    intelligence = fetch_company_intelligence(company_name)
+                with st.spinner(f"Generating strategic summary for {company_name}..."):
+                    intelligence = fetch_company_intelligence(company_name, website)
                     
                     # Add signal badges if available
                     if "funding" in intelligence.lower():
