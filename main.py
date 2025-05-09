@@ -521,48 +521,58 @@ def generate_prep_sheet(company_info):
         recent_news = fetch_news(company_name)
         
         # Build the prompt
-        prompt = f"""You are a sales intelligence analyst preparing a call prep brief.
+        prompt = f"""You are a senior business strategy expert preparing a high-level briefing for a technology sales executive. Your analysis should focus on strategic implications, growth opportunities, and technology enablement.
 
 Company Name: {company_name}
 
 Recent Updates:
 {recent_news if recent_news else "No recent news available."}
 
-Write a comprehensive call prep summary that incorporates insights from the news above (if available). Structure your response with these sections:
+Create a strategic analysis that connects recent developments to business outcomes and technology opportunities. Structure your response with these sections:
 
-**Company Overview:**
-- Brief summary of what the company does
-- Headquarters location
-- Whether the company is private or public
-- Estimated employee size
-- Industry classification
+**Strategic Business Context:**
+- Core business model and market position
+- Key growth drivers and revenue streams
+- Recent strategic moves (M&A, funding, leadership changes)
+- Competitive dynamics and market share implications
 
-**Industry Trends:**
-- Outline key trends, challenges, or economic forces shaping their industry
-- Focus on insights relevant to business leaders (e.g. CFOs, CHROs, CEOs)
-- Include relevant insights if they are in healthcare, staffing, tech, or retail
+**Growth Triggers & Risk Factors:**
+- Recent funding rounds and their strategic implications
+- M&A activity and integration challenges/opportunities
+- Leadership changes and organizational impact
+- Regulatory changes affecting business model
+- Market expansion or contraction signals
 
-**Workday Value:**
-- Based on the company's industry and size, explain why Workday would be a strong fit
-- Highlight specific modules or functionality that are especially relevant (e.g. HR, finance, planning)
-- Be specific to the company and industry where possible
+**Technology Enablement Opportunities:**
+- Current technology gaps affecting growth or margins
+- Digital transformation initiatives in progress
+- Specific areas where Workday could drive:
+  * Revenue expansion (e.g., new market entry, product innovation)
+  * Margin improvement (e.g., operational efficiency, cost reduction)
+  * Risk mitigation (e.g., compliance, talent management)
+  * Strategic advantage (e.g., data-driven decision making)
 
-**Sales Triggers:**
-- Recent events like funding rounds, acquisitions, new executive hires (CEO, CHRO, CFO), new office openings, major PR/news events
-- Try to identify real, recent signals the rep could act on in conversation
+**Executive Conversation Starters:**
+- Key business challenges to explore
+- Strategic initiatives to align with
+- Metrics that matter to the executive team
+- Recent developments to reference
+- Potential ROI scenarios to discuss
 
 Important:
 - Use the exact company name: {company_name}
-- Format your response using markdown with bold headers and bullet points
-- Be specific and cite relevant information from the news articles provided
-- Focus on actionable insights that would be valuable for a sales call
-- Do not make up or hallucinate company names or details"""
+- Focus on strategic implications, not just facts
+- Connect recent news to business outcomes
+- Frame insights in terms of revenue, margin, and growth
+- Use markdown formatting with bold headers and bullet points
+- Be specific and cite relevant information from the news
+- Maintain an executive-level perspective throughout"""
 
         st.write("Sending request to OpenAI...")  # Debug info
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a sales intelligence assistant helping to prepare for a sales call. Your responses must be accurate and use the exact company name provided. Do not make up or hallucinate company names or details. Use markdown formatting with bold headers and bullet points for clarity."},
+                {"role": "system", "content": "You are a senior business strategy expert with deep experience in technology transformation. Your analysis should demonstrate strategic thinking, connect dots between recent developments and business outcomes, and focus on executive-level insights. Avoid generic statements and focus on specific, actionable insights that matter to C-level executives."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
