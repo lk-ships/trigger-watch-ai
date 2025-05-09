@@ -676,13 +676,6 @@ def show_crm_pipeline():
                 step=5000.0,
                 key=f"acv_{i}"
             )
-            if new_acv != deal['acv']:
-                # Find the actual index in session state
-                actual_index = next((idx for idx, d in enumerate(st.session_state.pipeline) 
-                                   if d['account'] == deal['account']), None)
-                if actual_index is not None:
-                    st.session_state.pipeline[actual_index]['acv'] = float(new_acv)
-                    st.experimental_rerun()
             
             # Stage (editable)
             new_stage = col3.selectbox(
@@ -691,23 +684,6 @@ def show_crm_pipeline():
                 index=["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"].index(deal['stage']),
                 key=f"stage_{i}"
             )
-            if new_stage != deal['stage']:
-                # Find the actual index in session state
-                actual_index = next((idx for idx, d in enumerate(st.session_state.pipeline) 
-                                   if d['account'] == deal['account']), None)
-                if actual_index is not None:
-                    st.session_state.pipeline[actual_index]['stage'] = new_stage
-                    if new_stage == "Closed Won":
-                        # Add to closed deals
-                        st.session_state.deals.append({
-                            "account": deal['account'],
-                            "acv": float(deal['acv']),
-                            "deal_type": "HR",  # Default to HR, can be updated later
-                            "quarter": f"Q{(date.today().month-1)//3 + 1}"  # Current quarter
-                        })
-                        # Remove from pipeline
-                        st.session_state.pipeline.pop(actual_index)
-                    st.experimental_rerun()
             
             # Notes (editable)
             new_notes = col4.text_area(
@@ -715,22 +691,38 @@ def show_crm_pipeline():
                 value=deal['notes'],
                 key=f"notes_{i}"
             )
-            if new_notes != deal['notes']:
-                # Find the actual index in session state
-                actual_index = next((idx for idx, d in enumerate(st.session_state.pipeline) 
-                                   if d['account'] == deal['account']), None)
-                if actual_index is not None:
-                    st.session_state.pipeline[actual_index]['notes'] = new_notes
-                    st.experimental_rerun()
             
-            # Delete button
-            if col5.button("❌", key=f"delete_{i}"):
-                # Find the actual index in session state
-                actual_index = next((idx for idx, d in enumerate(st.session_state.pipeline) 
-                                   if d['account'] == deal['account']), None)
-                if actual_index is not None:
+            # Find the actual index in session state
+            actual_index = next((idx for idx, d in enumerate(st.session_state.pipeline) 
+                               if d['account'] == deal['account']), None)
+            
+            if actual_index is not None:
+                # Handle ACV changes
+                if new_acv != deal['acv']:
+                    st.session_state.pipeline[actual_index]['acv'] = float(new_acv)
+                
+                # Handle stage changes
+                if new_stage != deal['stage']:
+                    if new_stage == "Closed Won":
+                        # Add to closed deals
+                        st.session_state.deals.append({
+                            "account": deal['account'],
+                            "acv": float(deal['acv']),
+                            "deal_type": "HR",
+                            "quarter": f"Q{(date.today().month-1)//3 + 1}"
+                        })
+                        # Remove from pipeline
+                        st.session_state.pipeline.pop(actual_index)
+                    else:
+                        st.session_state.pipeline[actual_index]['stage'] = new_stage
+                
+                # Handle notes changes
+                if new_notes != deal['notes']:
+                    st.session_state.pipeline[actual_index]['notes'] = new_notes
+                
+                # Handle delete
+                if col5.button("❌", key=f"delete_{i}"):
                     st.session_state.pipeline.pop(actual_index)
-                    st.experimental_rerun()
             
             st.markdown("---")
         
@@ -759,7 +751,6 @@ def show_crm_pipeline():
             col4.markdown(f"{deal['quarter']}")
             if col5.button("❌", key=f"delete_closed_{i}"):
                 st.session_state.deals.pop(i)
-                st.experimental_rerun()
             st.markdown("---")
 
 # === CALL PREP SHEET ===
