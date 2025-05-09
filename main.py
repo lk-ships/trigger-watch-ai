@@ -109,7 +109,7 @@ st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
     "🏠 Home", "📂 CRM", "📁 Upload Accounts",
-    "🧠 AI Account Summaries", "💼 Closed Deals", "📊 Quota Tracker", "📞 Call Prep Sheet"
+    "🧠 Account Review", "💼 Closed Deals", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
@@ -297,7 +297,7 @@ Format your response using markdown with bold headers and bullet points. Be spec
         return f"Error generating summary: {str(e)}"
 
 def show_ai_summaries():
-    st.title("🧠 AI Account Summaries")
+    st.title("🧠 Account Review")
     
     # Create a form for company input
     with st.form("company_summary_form"):
@@ -746,11 +746,9 @@ elif section == "📊 Quota Tracker":
     show_quota_tracker()
 elif section == "💼 Closed Deals":
     show_closed_deals()
-elif section == "🧠 AI Account Summaries":
+elif section == "🧠 Account Review":
     show_ai_summaries()
 elif section == "📁 Upload Accounts":
     show_upload_section()
 elif section == "📂 CRM":
     show_crm_pipeline()
-elif section == "📞 Call Prep Sheet":
-    show_call_prep()
