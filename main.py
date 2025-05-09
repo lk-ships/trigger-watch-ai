@@ -588,6 +588,43 @@ Important:
 def show_call_prep():
     st.title("📞 Call Prep Sheet")
     
+    # Add custom CSS for the prep sheet styling
+    st.markdown("""
+    <style>
+    .prep-sheet-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .prep-section {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #e2e8f0;
+    }
+    .prep-section h3 {
+        color: #1e293b;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+    .prep-content {
+        color: #475569;
+        line-height: 1.6;
+        margin: 0;
+    }
+    .news-updates {
+        background-color: #f0f9ff;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #bae6fd;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Check for OpenAI API key
     if not os.getenv("OPENAI_API_KEY"):
         st.error("⚠️ OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
@@ -604,61 +641,79 @@ def show_call_prep():
                     # Extract company info
                     company_info = extract_company_info(url)
                     
-                    # Get recent news
-                    recent_news = fetch_news(company_info['name'])
-                    if recent_news:
-                        with st.container():
+                    # Create main container for the prep sheet
+                    with st.container():
+                        st.markdown('<div class="prep-sheet-container">', unsafe_allow_html=True)
+                        
+                        # Company header
+                        st.markdown(f"## {company_info['name']}")
+                        st.markdown("---")
+                        
+                        # Get recent news
+                        recent_news = fetch_news(company_info['name'])
+                        if recent_news:
+                            st.markdown('<div class="news-updates">', unsafe_allow_html=True)
                             st.markdown("### 📰 Recent Company Updates")
                             st.markdown(f"""
-                            <div class="response-text">
+                            <div class="prep-content">
                                 {recent_news}
                             </div>
                             """, unsafe_allow_html=True)
-                            st.markdown("---")
-                    
-                    # Generate prep sheet
-                    prep_content = generate_prep_sheet(company_info)
-                    
-                    if prep_content.startswith("Error"):
-                        st.error(prep_content)
-                        return
-                    
-                    # Parse and display the content in sections
-                    with st.container():
+                            st.markdown('</div>', unsafe_allow_html=True)
+                            st.write("")
+                        
+                        # Generate prep sheet
+                        prep_content = generate_prep_sheet(company_info)
+                        
+                        if prep_content.startswith("Error"):
+                            st.error(prep_content)
+                            return
+                        
                         # Company Summary
-                        st.markdown("### 🏢 Company Summary")
+                        st.markdown('<div class="prep-section">', unsafe_allow_html=True)
+                        st.markdown("### 📌 Company Summary")
                         st.markdown(f"""
-                        <div class="response-text">
+                        <div class="prep-content">
                             {extract_section(prep_content, "Strategic Business Context") or "_No data available._"}
                         </div>
                         """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                         st.write("")
                         
                         # Industry Trends
+                        st.markdown('<div class="prep-section">', unsafe_allow_html=True)
                         st.markdown("### 📈 Industry Trends")
                         st.markdown(f"""
-                        <div class="response-text">
+                        <div class="prep-content">
                             {extract_section(prep_content, "Growth Triggers & Risk Factors") or "_No data available._"}
                         </div>
                         """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                         st.write("")
                         
                         # Workday Fit/Value
+                        st.markdown('<div class="prep-section">', unsafe_allow_html=True)
                         st.markdown("### 💼 Workday Fit/Value")
                         st.markdown(f"""
-                        <div class="response-text">
+                        <div class="prep-content">
                             {extract_section(prep_content, "Technology Enablement Opportunities") or "_No data available._"}
                         </div>
                         """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                         st.write("")
                         
                         # Trigger Events
-                        st.markdown("### 🎯 Trigger Events")
+                        st.markdown('<div class="prep-section">', unsafe_allow_html=True)
+                        st.markdown("### 🚨 Trigger Events")
                         st.markdown(f"""
-                        <div class="response-text">
+                        <div class="prep-content">
                             {extract_section(prep_content, "Executive Conversation Starters") or "_No data available._"}
                         </div>
                         """, unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
                 st.info("Please check your internet connection and try again.")
