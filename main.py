@@ -607,7 +607,7 @@ def show_crm_pipeline():
                 for _, row in df.iterrows():
                     st.session_state.pipeline.append({
                         "account": row["account"],
-                        "acv": float(row["acv"]),
+                        "acv": float(row["acv"]),  # Ensure ACV is stored as float
                         "stage": row["stage"],
                         "close_date": row["close_date"],
                         "notes": row["notes"]
@@ -624,7 +624,7 @@ def show_crm_pipeline():
         with col1:
             account = st.text_input("Account Name")
         with col2:
-            acv = st.number_input("Deal Value (ACV $)", min_value=0, step=5000)
+            acv = st.number_input("Deal Value (ACV $)", min_value=0.0, step=5000.0, value=0.0)  # Ensure float values
         with col3:
             stage = st.selectbox("Stage", ["Prospecting", "Discovery", "Demo", "Proposal", "Commit", "Closed Won"])
         col4 = st.columns(1)[0]
@@ -636,7 +636,7 @@ def show_crm_pipeline():
         if submitted:
             st.session_state.pipeline.append({
                 "account": account,
-                "acv": acv,
+                "acv": float(acv),  # Ensure ACV is stored as float
                 "stage": stage,
                 "close_date": str(close_date),
                 "notes": notes
@@ -659,12 +659,13 @@ def show_crm_pipeline():
             # ACV (editable)
             new_acv = col2.number_input(
                 "ACV",
-                value=float(deal['acv']),
-                step=5000,
+                value=float(deal['acv']),  # Ensure float value
+                min_value=0.0,  # Ensure float value
+                step=5000.0,  # Ensure float value
                 key=f"acv_{i}"
             )
             if new_acv != deal['acv']:
-                st.session_state.pipeline[i]['acv'] = new_acv
+                st.session_state.pipeline[i]['acv'] = float(new_acv)  # Ensure float value
                 st.experimental_rerun()
             
             # Stage (editable)
@@ -680,7 +681,7 @@ def show_crm_pipeline():
                 if new_stage == "Closed Won":
                     st.session_state.deals.append({
                         "account": deal['account'],
-                        "acv": deal['acv'],
+                        "acv": float(deal['acv']),  # Ensure float value
                         "deal_type": "HR",  # Default to HR, can be updated later
                         "quarter": f"Q{(date.today().month-1)//3 + 1}"  # Current quarter
                     })
