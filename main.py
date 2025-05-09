@@ -109,7 +109,7 @@ st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
     "🏠 Home", "📂 CRM", "📁 Top Targets",
-    "🔎 Account Search", "📊 Quota Tracker"
+    "🔍 Account Search", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
@@ -190,7 +190,7 @@ def show_quota_tracker():
 
 # === ACCOUNT SEARCH ===
 def show_account_search():
-    st.title("🔎 Account Search")
+    st.title("🔍 Account Search")
     
     # Add custom CSS for the search interface
     st.markdown("""
@@ -942,7 +942,7 @@ if section == "🏠 Home":
     show_home()
 elif section == "📊 Quota Tracker":
     show_quota_tracker()
-elif section == "🔎 Account Search":
+elif section == "🔍 Account Search":
     show_account_search()
 elif section == "📁 Top Targets":
     show_top_targets()
