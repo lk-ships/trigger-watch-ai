@@ -109,7 +109,7 @@ st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
     "🏠 Home", "📂 CRM", "📁 Top Targets",
-    "🧠 Account Search", "💼 Closed Deals", "📊 Quota Tracker"
+    "�� Account Search", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
@@ -187,89 +187,6 @@ def show_quota_tracker():
         st.dataframe(logo_deals, use_container_width=True)
     else:
         st.info("No deals logged yet.")
-
-# === CLOSED DEALS ===
-def show_closed_deals():
-    st.title("💼 Closed Deals")
-    
-    # Add file upload section
-    st.subheader("📁 Upload Closed Deals")
-    
-    # Create and offer sample template download
-    sample_closed_deals = pd.DataFrame({
-        "account": ["Example Corp", "Sample Inc"],
-        "acv": [50000, 75000],
-        "deal_type": ["HR", "FINS"],
-        "quarter": ["Q1", "Q2"]
-    })
-    csv = sample_closed_deals.to_csv(index=False)
-    st.download_button(
-        label="📥 Download Sample Template",
-        data=csv,
-        file_name="closed_deals_template.csv",
-        mime="text/csv",
-        key="closed_deals_template"
-    )
-    
-    uploaded_file = st.file_uploader("Upload Closed Deals CSV", type="csv", key="closed_deals_upload")
-    if uploaded_file:
-        try:
-            df = pd.read_csv(uploaded_file)
-            required_columns = ["account", "acv", "deal_type", "quarter"]
-            if all(col in df.columns for col in required_columns):
-                # Clear existing deals if new file is uploaded
-                st.session_state.deals = []
-                for _, row in df.iterrows():
-                    st.session_state.deals.append({
-                        "account": row["account"],
-                        "acv": float(row["acv"]),
-                        "deal_type": row["deal_type"],
-                        "quarter": row["quarter"]
-                    })
-                st.success("✅ Closed deals uploaded successfully!")
-            else:
-                st.error("❌ CSV must contain columns: account, acv, deal_type, quarter")
-        except Exception as e:
-            st.error(f"❌ Error uploading file: {str(e)}")
-
-    with st.form("deal_form"):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            account_name = st.text_input("Account Name")
-        with col2:
-            deal_value = st.number_input("ACV ($)", min_value=0, step=5000)
-        with col3:
-            deal_type = st.selectbox("Deal Type", ["HR", "FINS", "PLN", "Full Suite", "HR + FINS", "FINS + PLN"])
-        quarter_closed = st.selectbox("Quarter Closed", ["Q1", "Q2", "Q3", "Q4"])
-
-        submitted = st.form_submit_button("Add Deal")
-        existing_accounts = [d["account"].lower() for d in st.session_state.deals]
-
-        if submitted:
-            if not account_name or deal_value == 0:
-                st.warning("Please enter a valid account name and ACV greater than $0.")
-            elif account_name.lower() in existing_accounts:
-                st.warning("🚫 This account is already in your closed deal list.")
-            else:
-                st.session_state.deals.append({
-                    "account": account_name,
-                    "acv": deal_value,
-                    "deal_type": deal_type,
-                    "quarter": quarter_closed
-                })
-                st.success(f"✅ Deal added: {account_name}")
-
-    if st.session_state.deals:
-        st.markdown("### 📋 Your Closed Deals")
-        for i, deal in enumerate(st.session_state.deals):
-            col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 1])
-            col1.markdown(f"**{deal['account']}**")
-            col2.markdown(f"${deal['acv']:,.0f}")
-            col3.markdown(f"{deal['deal_type']}")
-            col4.markdown(f"{deal['quarter']}")
-            if col5.button("❌", key=f"delete_{i}"):
-                st.session_state.deals.pop(i)
-                st.experimental_rerun()
 
 # === AI ACCOUNT SUMMARIES (DUMMY) ===
 def generate_company_summary(company_name):
@@ -1074,8 +991,6 @@ if section == "🏠 Home":
     show_home()
 elif section == "📊 Quota Tracker":
     show_quota_tracker()
-elif section == "💼 Closed Deals":
-    show_closed_deals()
 elif section == "🧠 Account Search":
     show_ai_summaries()
 elif section == "📁 Top Targets":
