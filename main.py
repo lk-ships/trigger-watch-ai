@@ -752,6 +752,15 @@ def show_crm_pipeline():
             if col5.button("❌", key=f"delete_closed_{i}"):
                 st.session_state.deals.pop(i)
             st.markdown("---")
+        
+        # Calculate and display total Closed Won ACV
+        total_closed_acv = sum(deal['acv'] for deal in st.session_state.deals)
+        st.markdown(f"**Total Closed Won ACV:** ${total_closed_acv:,.0f}")
+        
+        # Display progress towards quota if quota is set
+        if st.session_state.quota:
+            quota_percentage = (total_closed_acv / st.session_state.quota) * 100
+            st.progress(min(quota_percentage / 100, 1.0), text=f"{quota_percentage:.1f}% to quota")
 
 # === CALL PREP SHEET ===
 def extract_company_info(url):
