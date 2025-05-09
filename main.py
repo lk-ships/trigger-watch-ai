@@ -109,7 +109,7 @@ st.sidebar.title("📈 Territory Suite")
 st.sidebar.caption("The Sales Mainframe")
 section = st.sidebar.radio("Navigate", [
     "🏠 Home", "📂 CRM", "📁 Top Targets",
-    "�� Account Search", "📊 Quota Tracker"
+    "🔎 Account Search", "📊 Quota Tracker"
 ])
 
 # === SESSION STATE INIT ===
@@ -188,97 +188,48 @@ def show_quota_tracker():
     else:
         st.info("No deals logged yet.")
 
-# === AI ACCOUNT SUMMARIES (DUMMY) ===
-def generate_company_summary(company_name):
-    """Generate company summary using OpenAI"""
-    try:
-        prompt = f"""You are a business intelligence analyst. Create a comprehensive summary for {company_name} with the following sections:
-
-**Company Overview:**
-- Brief description of the company's core business
-- Key products or services
-- Market position and size
-- Recent significant developments
-
-**Industry Trends:**
-- Major trends affecting the company's sector
-- Market dynamics and competitive landscape
-- Regulatory or technological changes
-- Economic factors impacting the industry
-
-**Known Challenges or Risks:**
-- Current business challenges
-- Market risks or threats
-- Operational or competitive pressures
-- Regulatory or compliance issues
-
-**Opportunities for Tech Adoption:**
-- Potential areas for digital transformation
-- Technology gaps or inefficiencies
-- Innovation opportunities
-- Digital initiatives that could drive growth
-
-Format your response using markdown with bold headers and bullet points. Be specific and data-driven where possible. Focus on actionable insights that would be valuable for a technology sales conversation."""
-
-        completion = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a business intelligence analyst providing detailed company summaries. Your responses must be accurate, specific, and well-structured. Use markdown formatting with bold headers and bullet points for clarity."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        return completion.choices[0].message.content
-    except Exception as e:
-        return f"Error generating summary: {str(e)}"
-
-def show_ai_summaries():
-    st.title("🧠 Account Search")
+# === ACCOUNT SEARCH ===
+def show_account_search():
+    st.title("🔎 Account Search")
     
-    # Create a form for company input
-    with st.form("company_summary_form"):
-        company_input = st.text_input(
-            "Enter Company Name or Website",
-            placeholder="e.g., Moderna or https://www.moderna.com"
-        )
-        
-        submitted = st.form_submit_button("Generate Summary")
-        
-        if submitted and company_input:
-            try:
-                with st.spinner("Generating company summary..."):
-                    # Extract company name if URL is provided
-                    if company_input.startswith(('http://', 'https://')):
-                        company_info = extract_company_info(company_input)
-                        company_name = company_info['name']
-                    else:
-                        company_name = company_input
-                    
-                    # Generate summary
-                    summary = generate_company_summary(company_name)
-                    
-                    if summary.startswith("Error"):
-                        st.error(summary)
-                    else:
-                        # Display the summary in a styled block
-                        st.markdown(f"""
-                        <div class="response-text">
-                            {summary}
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
-                st.info("Please check your internet connection and try again.")
-        elif submitted:
-            st.warning("Please enter a company name or website URL")
+    # Add custom CSS for the search interface
+    st.markdown("""
+    <style>
+    .search-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .coming-soon {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        color: #64748b;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
-    # Display uploaded accounts if available
-    if st.session_state.uploaded_accounts is not None:
-        st.markdown("### 📊 Uploaded Account List")
-        st.dataframe(st.session_state.uploaded_accounts)
+    # Create tabs for different search methods
+    tab1, tab2 = st.tabs(["🔍 Search by Name", "📁 Upload CSV"])
+    
+    with tab1:
+        st.markdown('<div class="search-container">', unsafe_allow_html=True)
+        company_name = st.text_input("Enter Company Name", placeholder="e.g., Acme Corporation")
+        if st.button("Search", key="search_name"):
+            st.markdown('<div class="coming-soon">This feature is coming soon</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with tab2:
+        st.markdown('<div class="search-container">', unsafe_allow_html=True)
+        uploaded_file = st.file_uploader("Upload Company List (CSV)", type="csv")
+        if uploaded_file is not None:
+            st.markdown('<div class="coming-soon">This feature is coming soon</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # === TOP TARGETS ===
 def fetch_company_intelligence(company_name, website):
@@ -991,8 +942,8 @@ if section == "🏠 Home":
     show_home()
 elif section == "📊 Quota Tracker":
     show_quota_tracker()
-elif section == "🧠 Account Search":
-    show_ai_summaries()
+elif section == "🔎 Account Search":
+    show_account_search()
 elif section == "📁 Top Targets":
     show_top_targets()
 elif section == "📂 CRM":
