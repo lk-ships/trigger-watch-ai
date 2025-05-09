@@ -352,35 +352,43 @@ def fetch_company_intelligence(company_name):
         news = fetch_news(company_name)
         
         # Build the prompt for OpenAI
-        prompt = f"""Analyze the following information about {company_name} and provide a concise executive summary:
+        prompt = f"""As a business intelligence analyst, provide a concise executive summary for {company_name}. Focus on actionable insights and strategic implications.
 
 Recent News:
 {news if news else 'No recent news available.'}
 
-Please structure your response with these sections:
+Structure your analysis with these sections:
 
-**Recent Developments:**
-- Key news headlines and their business implications
-- Executive changes or notable hires
+**Key Signals & Triggers:**
+- Recent executive changes or notable hires
 - Strategic initiatives or partnerships
+- Funding rounds or financial developments
+- Market expansion or contraction signals
 
 **Business Context:**
-- Current market position
-- Key growth areas
+- Current market position and competitive landscape
+- Growth areas and revenue drivers
 - Notable challenges or opportunities
+- Recent performance indicators
 
-**Technology Signals:**
-- HRIS or ERP system mentions
+**Technology Landscape:**
+- Current HRIS/ERP systems in use
 - Digital transformation initiatives
 - Technology hiring patterns
-- Workday-relevant opportunities
+- Workday-relevant opportunities or pain points
 
-Format the response in clear, concise bullet points. Focus on actionable insights that would be valuable for a technology sales conversation."""
+**Action Items:**
+- Key conversation starters
+- Strategic entry points
+- Potential ROI scenarios
+- Risk factors to address
+
+Format the response in clear, concise bullet points. Focus on insights that would be valuable for a technology sales conversation. If information is not available for a section, indicate that clearly."""
 
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a business intelligence analyst providing concise, executive-level company summaries. Focus on strategic insights and actionable intelligence."},
+                {"role": "system", "content": "You are a senior business intelligence analyst providing executive-level company summaries. Focus on strategic insights, actionable intelligence, and clear business implications. Avoid generic statements and prioritize specific, data-driven insights."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -399,27 +407,59 @@ def show_top_targets():
     <style>
     .intelligence-card {
         background-color: #ffffff;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 24px 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
     }
     .company-header {
         color: #1e293b;
         font-size: 1.5em;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
     }
     .intelligence-content {
         color: #475569;
         line-height: 1.6;
     }
+    .intelligence-content h3 {
+        color: #1e293b;
+        font-size: 1.2em;
+        margin: 20px 0 12px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .intelligence-content ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .intelligence-content li {
+        margin-bottom: 8px;
+    }
     .last-updated {
         color: #64748b;
         font-size: 0.9em;
+        background-color: #f8fafc;
+        padding: 4px 8px;
+        border-radius: 4px;
     }
+    .signal-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+    .signal-funding { background-color: #dcfce7; color: #166534; }
+    .signal-hiring { background-color: #dbeafe; color: #1e40af; }
+    .signal-news { background-color: #fef3c7; color: #92400e; }
+    .signal-tech { background-color: #f3e8ff; color: #6b21a8; }
     </style>
     """, unsafe_allow_html=True)
     
@@ -443,7 +483,7 @@ def show_top_targets():
     
     # Display intelligence cards for each company
     if not st.session_state.top_targets.empty:
-        st.markdown("### 📊 Target Intelligence")
+        st.markdown("### 📊 Target Intelligence Dashboard")
         
         for _, row in st.session_state.top_targets.iterrows():
             company_name = row['Company Name']
@@ -461,6 +501,17 @@ def show_top_targets():
                 # Generate and display intelligence
                 with st.spinner(f"Fetching intelligence for {company_name}..."):
                     intelligence = fetch_company_intelligence(company_name)
+                    
+                    # Add signal badges if available
+                    if "funding" in intelligence.lower():
+                        st.markdown('<span class="signal-badge signal-funding">💰 Funding Update</span>', unsafe_allow_html=True)
+                    if "hire" in intelligence.lower() or "appoint" in intelligence.lower():
+                        st.markdown('<span class="signal-badge signal-hiring">👥 Executive Change</span>', unsafe_allow_html=True)
+                    if "news" in intelligence.lower():
+                        st.markdown('<span class="signal-badge signal-news">📰 Recent News</span>', unsafe_allow_html=True)
+                    if "workday" in intelligence.lower() or "hris" in intelligence.lower() or "erp" in intelligence.lower():
+                        st.markdown('<span class="signal-badge signal-tech">💻 Tech Signal</span>', unsafe_allow_html=True)
+                    
                     st.markdown(f"""
                     <div class="intelligence-content">
                         {intelligence}
