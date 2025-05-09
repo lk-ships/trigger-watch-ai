@@ -189,6 +189,51 @@ def show_quota_tracker():
         st.info("No deals logged yet.")
 
 # === ACCOUNT SEARCH ===
+def generate_company_summary(company_name):
+    """Generate company summary using OpenAI"""
+    try:
+        prompt = f"""You are a business intelligence analyst. Create a comprehensive summary for {company_name} with the following sections:
+
+**Company Overview:**
+- Brief description of the company's core business
+- Key products or services
+- Market position and size
+- Recent significant developments
+
+**Industry Trends:**
+- Major trends affecting the company's sector
+- Market dynamics and competitive landscape
+- Regulatory or technological changes
+- Economic factors impacting the industry
+
+**Known Challenges or Risks:**
+- Current business challenges
+- Market risks or threats
+- Operational or competitive pressures
+- Regulatory or compliance issues
+
+**Opportunities for Tech Adoption:**
+- Potential areas for digital transformation
+- Technology gaps or inefficiencies
+- Innovation opportunities
+- Digital initiatives that could drive growth
+
+Format your response using markdown with bold headers and bullet points. Be specific and data-driven where possible. Focus on actionable insights that would be valuable for a technology sales conversation."""
+
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a business intelligence analyst providing detailed company summaries. Your responses must be accurate, specific, and well-structured. Use markdown formatting with bold headers and bullet points for clarity."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"Error generating summary: {str(e)}"
+
 def show_account_search():
     st.title("🔍 Account Search")
     
