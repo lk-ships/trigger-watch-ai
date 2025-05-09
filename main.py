@@ -202,14 +202,33 @@ def show_account_search():
         margin: 20px 0;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .coming-soon {
-        background-color: #f8fafc;
+    .response-text {
+        background-color: #f8f9fa;
+        color: #212529;
+        padding: 1.5rem;
         border-radius: 8px;
-        padding: 20px;
-        margin: 20px 0;
-        border: 1px solid #e2e8f0;
-        text-align: center;
-        color: #64748b;
+        margin: 1rem 0;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        line-height: 1.6;
+    }
+    .response-text p {
+        margin-bottom: 1rem;
+    }
+    .response-text p:last-child {
+        margin-bottom: 0;
+    }
+    .response-text ul, .response-text ol {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+    .response-text li {
+        margin-bottom: 0.5rem;
+    }
+    .response-text h1, .response-text h2, .response-text h3, .response-text h4 {
+        color: #1a1a1a;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -221,14 +240,56 @@ def show_account_search():
         st.markdown('<div class="search-container">', unsafe_allow_html=True)
         company_name = st.text_input("Enter Company Name", placeholder="e.g., Acme Corporation")
         if st.button("Search", key="search_name"):
-            st.markdown('<div class="coming-soon">This feature is coming soon</div>', unsafe_allow_html=True)
+            if company_name:
+                try:
+                    with st.spinner("Generating company summary..."):
+                        # Generate summary
+                        summary = generate_company_summary(company_name)
+                        
+                        if summary.startswith("Error"):
+                            st.error(summary)
+                        else:
+                            # Display the summary in a styled block
+                            st.markdown(f"""
+                            <div class="response-text">
+                                {summary}
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+                    st.info("Please check your internet connection and try again.")
+            else:
+                st.warning("Please enter a company name")
         st.markdown('</div>', unsafe_allow_html=True)
     
     with tab2:
         st.markdown('<div class="search-container">', unsafe_allow_html=True)
         uploaded_file = st.file_uploader("Upload Company List (CSV)", type="csv")
         if uploaded_file is not None:
-            st.markdown('<div class="coming-soon">This feature is coming soon</div>', unsafe_allow_html=True)
+            try:
+                df = pd.read_csv(uploaded_file)
+                if 'Company Name' not in df.columns:
+                    st.error("❌ CSV must contain a 'Company Name' column")
+                else:
+                    st.success(f"✅ Found {len(df)} companies")
+                    for company in df['Company Name']:
+                        with st.expander(f"🔍 {company}"):
+                            try:
+                                with st.spinner(f"Generating summary for {company}..."):
+                                    summary = generate_company_summary(company)
+                                    if summary.startswith("Error"):
+                                        st.error(summary)
+                                    else:
+                                        st.markdown(f"""
+                                        <div class="response-text">
+                                            {summary}
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                            except Exception as e:
+                                st.error(f"Error generating summary for {company}: {str(e)}")
+            except Exception as e:
+                st.error(f"❌ Error processing file: {str(e)}")
         st.markdown('</div>', unsafe_allow_html=True)
 
 # === TOP TARGETS ===
